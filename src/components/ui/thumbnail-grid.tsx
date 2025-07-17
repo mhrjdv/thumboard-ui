@@ -142,6 +142,7 @@ export function ThumbnailGrid({
   const isLoading = useRealData ? thumbnailsQuery.loading : loading
   const isLoadingMore = useRealData ? thumbnailsQuery.loadingMore : false
   const hasMoreData = useRealData ? thumbnailsQuery.hasMore : hasMore
+  const error = useRealData ? thumbnailsQuery.error : null
 
   // Modal handlers
   const handleThumbnailClick = (thumbnail: Thumbnail) => {
@@ -171,24 +172,7 @@ export function ThumbnailGrid({
     }
   }, [isLoadMoreVisible, hasMoreData, isLoading, isLoadingMore, useRealData, thumbnailsQuery])
 
-  const getGridClasses = () => {
-    if (viewLayout === 'list') {
-      return 'flex flex-col space-y-4'
-    }
-    
-    const columnClasses = {
-      2: 'grid-cols-1 md:grid-cols-2',
-      3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-      4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-      5: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
-    }
 
-    if (viewLayout === 'masonry') {
-      return `columns-1 md:columns-2 lg:columns-${columns} gap-4 space-y-4`
-    }
-
-    return `grid ${columnClasses[columns]} gap-4`
-  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -211,8 +195,61 @@ export function ThumbnailGrid({
     },
   }
 
+  const getGridClasses = () => {
+    const baseClasses = 'gap-4 sm:gap-6'
+
+    switch (viewLayout) {
+      case 'masonry':
+        return `columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${baseClasses}`
+      case 'list':
+        return `flex flex-col space-y-4`
+      case 'grid':
+      default:
+        return `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${baseClasses}`
+    }
+  }
+
   return (
     <div className={cn('w-full', className)}>
+      {/* Layout Controls */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewLayout === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewLayout('grid')}
+            aria-label="Grid layout"
+            className="h-9 px-3"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewLayout === 'masonry' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewLayout('masonry')}
+            aria-label="Masonry layout"
+            className="h-9 px-3"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </Button>
+          <Button
+            variant={viewLayout === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewLayout('list')}
+            aria-label="List layout"
+            className="h-9 px-3"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          {displayData.length} {displayData.length === 1 ? 'item' : 'items'}
+        </div>
+      </div>
+
       {/* Error State */}
       {error && (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -228,7 +265,7 @@ export function ThumbnailGrid({
 
       {/* Loading State */}
       {isLoading && displayData.length === 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className={getGridClasses()}>
           {Array.from({ length: 20 }).map((_, i) => (
             <ThumbnailCardSkeleton key={i} />
           ))}
@@ -241,7 +278,7 @@ export function ThumbnailGrid({
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"
+          className={getGridClasses()}
         >
           <AnimatePresence>
             {displayData.map((item, index) => (
@@ -249,7 +286,10 @@ export function ThumbnailGrid({
                 key={item.id}
                 variants={itemVariants}
                 layout
-                className="w-full"
+                className={cn(
+                  viewLayout === 'masonry' && 'break-inside-avoid mb-4',
+                  viewLayout === 'list' && 'w-full'
+                )}
               >
               <SimpleThumbnailCard
                 thumbnail={useRealData && thumbnailsQuery.data && thumbnailsQuery.data.data[index] ? thumbnailsQuery.data.data[index] : {
@@ -275,6 +315,8 @@ export function ThumbnailGrid({
                   aspect_ratio: 16/9,
                 }}
                 onClick={handleThumbnailClick}
+                layout={viewLayout}
+                priority={index < 6} // Prioritize first 6 images
               />
             </motion.div>
           ))}
