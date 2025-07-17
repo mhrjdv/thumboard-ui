@@ -10,7 +10,7 @@ interface SimpleThumbnailCardProps {
   thumbnail: Thumbnail
   onClick?: (thumbnail: Thumbnail) => void
   className?: string
-  layout?: 'grid' | 'masonry' | 'list'
+  layout?: 'grid' | 'grid-3' | 'masonry' | 'list'
   priority?: boolean
 }
 
@@ -70,21 +70,23 @@ export function SimpleThumbnailCard({
           </div>
 
           {/* Keywords */}
-          <div className="flex flex-wrap gap-1.5">
-            {thumbnail.tags.slice(0, 5).map((keyword, index) => (
-              <span
-                key={index}
-                className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[120px] transition-colors hover:bg-muted"
-              >
-                {keyword}
-              </span>
-            ))}
-            {thumbnail.tags.length > 5 && (
-              <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
-                +{thumbnail.tags.length - 5}
-              </span>
-            )}
-          </div>
+          {thumbnail.tags && thumbnail.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {thumbnail.tags.slice(0, 5).map((keyword, index) => (
+                <span
+                  key={index}
+                  className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[120px] transition-colors hover:bg-muted"
+                >
+                  {keyword}
+                </span>
+              ))}
+              {thumbnail.tags.length > 5 && (
+                <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
+                  +{thumbnail.tags.length - 5}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Views */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -125,21 +127,23 @@ export function SimpleThumbnailCard({
         </div>
 
         {/* Keywords */}
-        <div className="flex flex-wrap gap-1.5">
-          {thumbnail.tags.slice(0, 3).map((keyword, index) => (
-            <span
-              key={index}
-              className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[100px] transition-colors hover:bg-muted"
-            >
-              {keyword}
-            </span>
-          ))}
-          {thumbnail.tags.length > 3 && (
-            <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
-              +{thumbnail.tags.length - 3}
-            </span>
-          )}
-        </div>
+        {thumbnail.tags && thumbnail.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {thumbnail.tags.slice(0, 3).map((keyword, index) => (
+              <span
+                key={index}
+                className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[100px] transition-colors hover:bg-muted"
+              >
+                {keyword}
+              </span>
+            ))}
+            {thumbnail.tags.length > 3 && (
+              <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
+                +{thumbnail.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Views */}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

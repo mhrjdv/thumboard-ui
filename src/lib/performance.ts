@@ -110,7 +110,7 @@ export function useVirtualScroll<T>({
 // Memoization utilities
 export function createMemoizedSelector<T, R>(
   selector: (state: T) => R,
-  _equalityFn?: (a: R, b: R) => boolean
+  _equalityFn?: (a: R, b: R) => boolean // eslint-disable-line @typescript-eslint/no-unused-vars
 ) {
   let lastArgs: T | undefined
   let lastResult: R

@@ -77,18 +77,6 @@ export function ContentBrowser({
               <Logo width={120} height={32} priority />
             </div>
 
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-md hover:bg-muted transition-colors"
-              aria-label="Toggle filters"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"} />
-              </svg>
-            </button>
-
             {/* Search Section */}
             <div className="flex-1 max-w-2xl mx-auto" id="search">
               <ErrorBoundary>
@@ -100,9 +88,24 @@ export function ContentBrowser({
               </ErrorBoundary>
             </div>
 
-            {/* Theme Toggle */}
-            <div className="flex-shrink-0">
-              <ThemeToggle />
+            {/* Controls */}
+            <div className="flex items-center gap-2">
+              {/* Sidebar Toggle Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-md hover:bg-muted transition-colors lg:hidden"
+                aria-label="Toggle filters"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"} />
+                </svg>
+              </button>
+
+              {/* Theme Toggle */}
+              <div className="flex-shrink-0">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>
@@ -154,6 +157,7 @@ export function ContentBrowser({
               onItemLike={onItemLike}
               onItemDownload={onItemDownload}
               onItemShare={onItemShare}
+              onToggleFilters={() => setSidebarOpen(!sidebarOpen)}
             />
           </ErrorBoundary>
         </main>

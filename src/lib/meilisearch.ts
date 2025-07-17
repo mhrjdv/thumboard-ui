@@ -1,7 +1,7 @@
-import { MeiliSearchThumbnail, MeiliSearchResponse, MeiliSearchParams, MeiliSearchFilters } from '@/types/database'
+import { MeiliSearchThumbnail, MeiliSearchResponse, MeiliSearchParams } from '@/types/database'
 import { FilterState } from '@/types/filters'
 
-const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'http://13.126.237.51:7700'
+const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'https://api.thumboard.in'
 const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY || 'UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe'
 
 export interface SearchParams {
@@ -36,20 +36,32 @@ class MeiliSearchService {
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
-    
-    const response = await fetch(url, {
+    // Use API routes for browser requests to avoid CORS issues
+    const isClient = typeof window !== 'undefined'
+
+    let url: string
+    if (isClient) {
+      // Use Next.js API routes from the client
+      url = `/api${endpoint}`
+    } else {
+      // Direct MeiliSearch calls from server
+      url = `${this.baseUrl}${endpoint}`
+    }
+
+    const requestOptions: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        ...(isClient ? {} : { 'Authorization': `Bearer ${this.apiKey}` }),
         ...options.headers,
       },
-    })
+    }
+
+    const response = await fetch(url, requestOptions)
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`)
     }
 
     return response.json()
@@ -145,7 +157,7 @@ class MeiliSearchService {
       }
 
       const response = await this.makeRequest<MeiliSearchResponse>(
-        '/indexes/thumbnails/search',
+        '/search',
         {
           method: 'POST',
           body: JSON.stringify(searchParams),
@@ -265,42 +277,62 @@ class MeiliSearchService {
 
   async getSuggestions(query: string, limit: number = 5): Promise<ApiResponse<string[]>> {
     try {
-      const response = await this.makeRequest<MeiliSearchResponse>(
-        '/indexes/thumbnails/search',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            q: query,
-            limit,
-            attributesToRetrieve: ['title', 'primary_keywords'],
-          }),
+      const isClient = typeof window !== 'undefined'
+
+      if (isClient) {
+        // Use API route from client
+        const response = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`)
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
         }
-      )
 
-      // Extract suggestions from titles and keywords
-      const suggestions = new Set<string>()
-      
-      response.hits.forEach(hit => {
-        // Add title words that match the query
-        const titleWords = hit.title.toLowerCase().split(' ')
-        titleWords.forEach(word => {
-          if (word.includes(query.toLowerCase()) && word.length > 2) {
-            suggestions.add(word)
+        const data = await response.json()
+        return {
+          data: data.suggestions || [],
+          error: null,
+          loading: false,
+        }
+      } else {
+        // Direct MeiliSearch call from server
+        const response = await this.makeRequest<MeiliSearchResponse>(
+          '/indexes/thumbnails/search',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              q: query,
+              limit,
+              attributesToRetrieve: ['title', 'primary_keywords'],
+            }),
           }
+        )
+
+        // Extract suggestions from titles and keywords
+        const suggestions = new Set<string>()
+
+        response.hits.forEach(hit => {
+          // Add title words that match the query
+          const titleWords = hit.title.toLowerCase().split(' ')
+          titleWords.forEach(word => {
+            if (word.includes(query.toLowerCase()) && word.length > 2) {
+              suggestions.add(word)
+            }
+          })
+
+          // Add matching keywords
+          hit.primary_keywords.forEach(keyword => {
+            if (keyword.toLowerCase().includes(query.toLowerCase())) {
+              suggestions.add(keyword)
+            }
+          })
         })
 
-        // Add matching keywords
-        hit.primary_keywords.forEach(keyword => {
-          if (keyword.toLowerCase().includes(query.toLowerCase())) {
-            suggestions.add(keyword)
-          }
-        })
-      })
-
-      return {
-        data: Array.from(suggestions).slice(0, limit),
-        error: null,
-        loading: false,
+        return {
+          data: Array.from(suggestions).slice(0, limit),
+          error: null,
+          loading: false,
+        }
       }
     } catch (error) {
       return {

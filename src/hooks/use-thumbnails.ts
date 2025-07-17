@@ -17,7 +17,15 @@ export function useThumbnails(searchParams: SearchParams) {
   const paramsKey = JSON.stringify(searchParams)
   const prevParamsKey = useRef<string>('')
 
-  const fetchThumbnails = useCallback(async (pageNum: number = 1, append: boolean = false) => {
+  const fetchThumbnails = useCallback(async (pageNum: number = 1, append: boolean = false, retryCount: number = 0) => {
+    // Prevent infinite loops
+    if (retryCount > 3) {
+      setError('Failed to load thumbnails after multiple attempts')
+      setLoading(false)
+      setLoadingMore(false)
+      return
+    }
+
     if (pageNum === 1) {
       setLoading(true)
       setAllData([])
@@ -26,26 +34,44 @@ export function useThumbnails(searchParams: SearchParams) {
     }
     setError(null)
 
-    const result = await dbService.searchThumbnails({
-      ...searchParams,
-      page: pageNum,
-      limit: 20, // Load 20 items per page
-    })
+    try {
+      const result = await dbService.searchThumbnails({
+        ...searchParams,
+        page: pageNum,
+        limit: 20, // Load 20 items per page
+      })
 
-    if (result.error) {
-      setError(result.error)
+      if (result.error) {
+        // Retry on error with exponential backoff
+        if (retryCount < 3) {
+          const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
+          setTimeout(() => {
+            fetchThumbnails(pageNum, append, retryCount + 1)
+          }, delay)
+          return
+        }
+
+        setError(result.error)
+        if (pageNum === 1) {
+          setData(null)
+          setAllData([])
+        }
+      } else if (result.data) {
+        setData(result.data)
+        setHasMore(result.data.hasMore)
+
+        if (append && pageNum > 1) {
+          setAllData(prev => [...prev, ...result.data!.data])
+        } else {
+          setAllData(result.data.data)
+        }
+      }
+    } catch (error) {
+      console.error('Fetch thumbnails error:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error occurred')
       if (pageNum === 1) {
         setData(null)
         setAllData([])
-      }
-    } else if (result.data) {
-      setData(result.data)
-      setHasMore(result.data.hasMore)
-
-      if (append && pageNum > 1) {
-        setAllData(prev => [...prev, ...result.data!.data])
-      } else {
-        setAllData(result.data.data)
       }
     }
 

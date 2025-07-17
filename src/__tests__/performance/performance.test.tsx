@@ -106,7 +106,7 @@ describe('Performance Tests', () => {
   describe('Image Lazy Loading', () => {
     beforeEach(() => {
       // Mock IntersectionObserver
-      global.IntersectionObserver = jest.fn().mockImplementation((_callback) => ({
+      global.IntersectionObserver = jest.fn().mockImplementation(() => ({
         observe: jest.fn(),
         unobserve: jest.fn(),
         disconnect: jest.fn(),

@@ -158,7 +158,7 @@ class MeiliSearchDatabaseService {
     }
   }
 
-  async likeThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> {
+  async likeThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       // Since we don't have a backend for likes, we'll simulate it
       console.log(`Liked thumbnail: ${thumbnailId}`)
@@ -172,7 +172,7 @@ class MeiliSearchDatabaseService {
     }
   }
 
-  async downloadThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> {
+  async downloadThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       // Since we don't have a backend for downloads, we'll simulate it
       console.log(`Downloaded thumbnail: ${thumbnailId}`)

@@ -7,7 +7,7 @@ import { ThumbnailCardSkeleton } from './thumbnail-card-skeleton'
 import { type ThumbnailData } from './thumbnail-card'
 import { Button } from './button'
 import { Loading } from './loading'
-import { AlertCircle, RefreshCw, Grid3X3, List } from 'lucide-react'
+import { AlertCircle, RefreshCw, Grid3X3, List, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThumbnails, useThumbnailActions } from '@/hooks/use-thumbnails'
 import { useIntersectionObserver } from '@/lib/performance'
@@ -24,9 +24,10 @@ interface ThumbnailGridProps {
   onItemDownload?: (id: string) => void
   onItemShare?: (id: string) => void
   className?: string
-  layout?: 'masonry' | 'grid' | 'list'
+  layout?: 'masonry' | 'grid' | 'grid-3' | 'list'
   columns?: 2 | 3 | 4 | 5
   useRealData?: boolean
+  onToggleFilters?: () => void
 }
 
 const mockData: ThumbnailData[] = [
@@ -98,22 +99,24 @@ export function ThumbnailGrid({
   loading = false,
   hasMore = true,
   onItemClick,
-  onItemLike,
-  onItemDownload,
-  onItemShare,
+  onItemLike: _onItemLike, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onItemDownload: _onItemDownload, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onItemShare: _onItemShare, // eslint-disable-line @typescript-eslint/no-unused-vars
   className,
   layout = 'masonry',
-  columns = 3,
+  columns: _columns = 3, // eslint-disable-line @typescript-eslint/no-unused-vars
   useRealData = false,
+  onToggleFilters,
 }: ThumbnailGridProps) {
-  const [viewLayout, setViewLayout] = React.useState<'masonry' | 'grid' | 'list'>(layout)
+  const [viewLayout, setViewLayout] = React.useState<'masonry' | 'grid' | 'grid-3' | 'list'>(layout)
   const [selectedThumbnail, setSelectedThumbnail] = React.useState<Thumbnail | null>(null)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const loadMoreRef = React.useRef<HTMLDivElement>(null)
 
   // Use real data if searchParams provided and useRealData is true
   const thumbnailsQuery = useThumbnails(searchParams && useRealData ? searchParams : { filters: defaultFilterState })
-  const { likeThumbnail, downloadThumbnail, incrementViews } = useThumbnailActions()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { likeThumbnail: _likeThumbnail, downloadThumbnail: _downloadThumbnail, incrementViews } = useThumbnailActions()
 
   // Use real data if available, otherwise fall back to mock data
   const displayData = React.useMemo(() => {
@@ -165,12 +168,23 @@ export function ThumbnailGrid({
     rootMargin: '100px',
   })
 
+  // Debounce infinite scroll to prevent rapid calls
+  const [canLoadMore, setCanLoadMore] = React.useState(true)
+
   // Auto-load more when sentinel becomes visible
   React.useEffect(() => {
-    if (isLoadMoreVisible && hasMoreData && !isLoading && !isLoadingMore && useRealData) {
+    if (isLoadMoreVisible && hasMoreData && !isLoading && !isLoadingMore && useRealData && canLoadMore) {
+      setCanLoadMore(false)
       thumbnailsQuery.loadMore?.()
+
+      // Re-enable loading after a delay
+      const timer = setTimeout(() => {
+        setCanLoadMore(true)
+      }, 1000)
+
+      return () => clearTimeout(timer)
     }
-  }, [isLoadMoreVisible, hasMoreData, isLoading, isLoadingMore, useRealData, thumbnailsQuery])
+  }, [isLoadMoreVisible, hasMoreData, isLoading, isLoadingMore, useRealData, canLoadMore, thumbnailsQuery])
 
 
 
@@ -200,12 +214,14 @@ export function ThumbnailGrid({
 
     switch (viewLayout) {
       case 'masonry':
-        return `columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${baseClasses}`
+        return `masonry-container columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${baseClasses} space-y-0`
       case 'list':
-        return `flex flex-col space-y-4`
+        return `list-container flex flex-col space-y-4`
+      case 'grid-3':
+        return `grid-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${baseClasses}`
       case 'grid':
       default:
-        return `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${baseClasses}`
+        return `grid-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${baseClasses}`
     }
   }
 
@@ -214,14 +230,37 @@ export function ThumbnailGrid({
       {/* Layout Controls */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
+          {/* Filter Toggle Button (mobile) */}
+          {onToggleFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleFilters}
+              className="h-9 px-3 lg:hidden"
+              aria-label="Toggle filters"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant={viewLayout === 'grid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewLayout('grid')}
-            aria-label="Grid layout"
+            aria-label="Grid layout (5 columns)"
             className="h-9 px-3"
           >
             <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewLayout === 'grid-3' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewLayout('grid-3')}
+            aria-label="Grid layout (3 columns)"
+            className="h-9 px-3"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4z" />
+            </svg>
           </Button>
           <Button
             variant={viewLayout === 'masonry' ? 'default' : 'outline'}
@@ -255,11 +294,25 @@ export function ThumbnailGrid({
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
           <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-          <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
-          <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Try Again
-          </Button>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            {error.includes('Failed to fetch')
+              ? 'Unable to connect to the search service. Please check your internet connection and try again.'
+              : error
+            }
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => thumbnailsQuery.refetch?.()} variant="outline" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="ghost"
+              size="sm"
+            >
+              Reload Page
+            </Button>
+          </div>
         </div>
       )}
 
@@ -279,6 +332,7 @@ export function ThumbnailGrid({
           initial="hidden"
           animate="visible"
           className={getGridClasses()}
+          style={viewLayout === 'masonry' ? { columnFill: 'balance' } : undefined}
         >
           <AnimatePresence>
             {displayData.map((item, index) => (
@@ -287,37 +341,39 @@ export function ThumbnailGrid({
                 variants={itemVariants}
                 layout
                 className={cn(
-                  viewLayout === 'masonry' && 'break-inside-avoid mb-4',
-                  viewLayout === 'list' && 'w-full'
+                  viewLayout === 'masonry' && 'masonry-item break-inside-avoid mb-4 inline-block w-full',
+                  viewLayout === 'list' && 'w-full',
+                  viewLayout === 'grid' && 'w-full',
+                  viewLayout === 'grid-3' && 'w-full'
                 )}
               >
-              <SimpleThumbnailCard
-                thumbnail={useRealData && thumbnailsQuery.data && thumbnailsQuery.data.data[index] ? thumbnailsQuery.data.data[index] : {
-                  id: item.id,
-                  title: item.title,
-                  description: item.description || '',
-                  image_url: item.imageUrl,
-                  author_id: item.author.name,
-                  author_name: item.author.name,
-                  author_avatar: item.author.avatar || null,
-                  category: '',
-                  emotion: '',
-                  content_type: 'video',
-                  tags: item.tags || [],
-                  color_palette: [],
-                  views: item.stats.views,
-                  likes: item.stats.likes,
-                  downloads: item.stats.downloads,
-                  price: 0,
-                  is_free: true,
-                  created_at: '',
-                  updated_at: '',
-                  aspect_ratio: 16/9,
-                }}
-                onClick={handleThumbnailClick}
-                layout={viewLayout}
-                priority={index < 6} // Prioritize first 6 images
-              />
+                <SimpleThumbnailCard
+                  thumbnail={useRealData && thumbnailsQuery.data && thumbnailsQuery.data.data[index] ? thumbnailsQuery.data.data[index] : {
+                    id: item.id,
+                    title: item.title,
+                    description: item.description || '',
+                    image_url: item.imageUrl,
+                    author_id: item.author.name,
+                    author_name: item.author.name,
+                    author_avatar: item.author.avatar || null,
+                    category: '',
+                    emotion: '',
+                    content_type: 'video',
+                    tags: item.tags || [],
+                    color_palette: [],
+                    views: item.stats.views,
+                    likes: item.stats.likes,
+                    downloads: item.stats.downloads,
+                    price: 0,
+                    is_free: true,
+                    created_at: '',
+                    updated_at: '',
+                    aspect_ratio: 16/9,
+                  }}
+                  onClick={handleThumbnailClick}
+                  layout={viewLayout}
+                  priority={index < 6} // Prioritize first 6 images
+                />
             </motion.div>
           ))}
         </AnimatePresence>
