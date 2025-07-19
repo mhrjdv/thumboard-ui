@@ -1,8 +1,18 @@
-import { MeiliSearchThumbnail, MeiliSearchResponse, MeiliSearchParams } from '@/types/database'
+import { MeiliSearchThumbnail, MeiliSearchResponse, MeiliSearchParams, MeilisearchIndexConfig } from '@/types/database'
 import { FilterState } from '@/types/filters'
 
 const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'https://api.thumboard.in'
 const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY || 'UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe'
+
+// Default configuration - can be overridden by fetching from the index
+const DEFAULT_INDEX_CONFIG: MeilisearchIndexConfig = {
+  sortableAttributes: ['title', 'channel_id', 'published_at', 'view_count'],
+  filterableAttributes: ['type', 'emotion', 'face_presence', 'layout_style', 'color_palette', 'primary_keywords'],
+  searchableAttributes: ['title', 'description', 'channel_name', 'primary_keywords'],
+  rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
+  facetableAttributes: ['type', 'emotion', 'face_presence', 'layout_style', 'color_palette'],
+  highlightableAttributes: ['title', 'description', 'channel_name', 'primary_keywords']
+}
 
 export interface SearchParams {
   query?: string
@@ -29,10 +39,129 @@ export interface ApiResponse<T> {
 class MeiliSearchService {
   private baseUrl: string
   private apiKey: string
+  private indexConfig: MeilisearchIndexConfig
+  private configFetched: boolean = false
 
   constructor() {
     this.baseUrl = MEILISEARCH_URL
     this.apiKey = MEILISEARCH_API_KEY
+    this.indexConfig = DEFAULT_INDEX_CONFIG
+  }
+
+  // Fetch the current index configuration from Meilisearch
+  private async fetchIndexConfig(): Promise<void> {
+    if (this.configFetched) return
+
+    try {
+      const isClient = typeof window !== 'undefined'
+
+      if (isClient) {
+        // Use API route from client
+        const response = await fetch('/api/index-config')
+        if (response.ok) {
+          const config = await response.json()
+          this.indexConfig = { ...DEFAULT_INDEX_CONFIG, ...config }
+        }
+      } else {
+        // Direct Meilisearch calls from server
+        const [sortable, filterable, searchable, ranking] = await Promise.all([
+          this.makeRequest<string[]>('/indexes/thumbnails/settings/sortable-attributes').catch(() => DEFAULT_INDEX_CONFIG.sortableAttributes),
+          this.makeRequest<string[]>('/indexes/thumbnails/settings/filterable-attributes').catch(() => DEFAULT_INDEX_CONFIG.filterableAttributes),
+          this.makeRequest<string[]>('/indexes/thumbnails/settings/searchable-attributes').catch(() => DEFAULT_INDEX_CONFIG.searchableAttributes),
+          this.makeRequest<string[]>('/indexes/thumbnails/settings/ranking-rules').catch(() => DEFAULT_INDEX_CONFIG.rankingRules),
+        ])
+
+        this.indexConfig = {
+          sortableAttributes: sortable,
+          filterableAttributes: filterable,
+          searchableAttributes: searchable,
+          rankingRules: ranking,
+          facetableAttributes: filterable, // Facetable attributes are typically the same as filterable
+          highlightableAttributes: searchable, // Highlightable attributes are typically the same as searchable
+        }
+      }
+
+      this.configFetched = true
+    } catch (error) {
+      console.warn('Failed to fetch index configuration, using defaults:', error)
+      this.indexConfig = DEFAULT_INDEX_CONFIG
+      this.configFetched = true
+    }
+  }
+
+  // Get the current index configuration
+  public async getIndexConfig(): Promise<MeilisearchIndexConfig> {
+    await this.fetchIndexConfig()
+    return this.indexConfig
+  }
+
+  // Get available sort options based on current configuration
+  public async getAvailableSortOptions(): Promise<Array<{id: string, label: string, field?: string, direction?: 'asc' | 'desc'}>> {
+    const config = await this.getIndexConfig()
+    const options: Array<{id: string, label: string, field?: string, direction?: 'asc' | 'desc'}> = [
+      { id: 'relevance', label: 'Relevance' }
+    ]
+
+    if (config.sortableAttributes.includes('title')) {
+      options.push(
+        { id: 'title', label: 'Title A-Z', field: 'title', direction: 'asc' as const },
+        { id: 'title-desc', label: 'Title Z-A', field: 'title', direction: 'desc' as const }
+      )
+    }
+
+    if (config.sortableAttributes.includes('published_at')) {
+      options.push(
+        { id: 'newest', label: 'Newest First', field: 'published_at', direction: 'desc' as const },
+        { id: 'oldest', label: 'Oldest First', field: 'published_at', direction: 'asc' as const }
+      )
+    }
+
+    if (config.sortableAttributes.includes('view_count')) {
+      options.push(
+        { id: 'views', label: 'Most Views', field: 'view_count', direction: 'desc' as const },
+        { id: 'views-asc', label: 'Least Views', field: 'view_count', direction: 'asc' as const }
+      )
+    }
+
+    if (config.sortableAttributes.includes('channel_id')) {
+      options.push(
+        { id: 'channel', label: 'Channel', field: 'channel_id', direction: 'asc' as const }
+      )
+    }
+
+    return options
+  }
+
+  // Get available filter options based on current configuration
+  public async getAvailableFilterOptions(): Promise<Array<{id: string, label: string, field: string}>> {
+    const config = await this.getIndexConfig()
+    const options = []
+
+    if (config.filterableAttributes.includes('type')) {
+      options.push({ id: 'types', label: 'Content Type', field: 'type' })
+    }
+
+    if (config.filterableAttributes.includes('emotion')) {
+      options.push({ id: 'emotions', label: 'Emotions & Mood', field: 'emotion' })
+    }
+
+    if (config.filterableAttributes.includes('face_presence')) {
+      options.push({ id: 'face_presence', label: 'Face Presence', field: 'face_presence' })
+    }
+
+    if (config.filterableAttributes.includes('layout_style')) {
+      options.push({ id: 'layout_style', label: 'Layout Style', field: 'layout_style' })
+    }
+
+    if (config.filterableAttributes.includes('color_palette')) {
+      options.push({ id: 'colors', label: 'Color Palette', field: 'color_palette' })
+    }
+
+    if (config.filterableAttributes.includes('primary_keywords')) {
+      options.push({ id: 'keywords', label: 'Keywords', field: 'primary_keywords' })
+    }
+
+    return options
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -67,41 +196,45 @@ class MeiliSearchService {
     return response.json()
   }
 
-  private buildFilters(filters: FilterState): string[] {
+  private async buildFilters(filters: FilterState): Promise<string[]> {
     const filterArray: string[] = []
+    const config = await this.getIndexConfig()
+
+    // Helper function to check if an attribute is filterable
+    const isFilterable = (attribute: string) => config.filterableAttributes.includes(attribute)
 
     // Content type filter
-    if (filters.types.length > 0) {
+    if (filters.types.length > 0 && isFilterable('type')) {
       const typeFilter = filters.types.map(type => `type = "${type}"`).join(' OR ')
       filterArray.push(`(${typeFilter})`)
     }
 
     // Emotion filter
-    if (filters.emotions.length > 0) {
+    if (filters.emotions.length > 0 && isFilterable('emotion')) {
       const emotionFilter = filters.emotions.map(emotion => `emotion = "${emotion}"`).join(' OR ')
       filterArray.push(`(${emotionFilter})`)
     }
 
     // Face presence filter
-    if (filters.face_presence.length > 0) {
+    if (filters.face_presence.length > 0 && isFilterable('face_presence')) {
       const faceFilter = filters.face_presence.map(face => `face_presence = "${face}"`).join(' OR ')
       filterArray.push(`(${faceFilter})`)
     }
 
     // Layout style filter
-    if (filters.layout_style.length > 0) {
+    if (filters.layout_style.length > 0 && isFilterable('layout_style')) {
       const layoutFilter = filters.layout_style.map(layout => `layout_style = "${layout}"`).join(' OR ')
       filterArray.push(`(${layoutFilter})`)
     }
 
     // Color palette filter
-    if (filters.colors.length > 0) {
+    if (filters.colors.length > 0 && isFilterable('color_palette')) {
       const colorFilter = filters.colors.map(color => `color_palette = "${color}"`).join(' OR ')
       filterArray.push(`(${colorFilter})`)
     }
 
     // Keywords filter
-    if (filters.keywords.length > 0) {
+    if (filters.keywords.length > 0 && isFilterable('primary_keywords')) {
       const keywordFilter = filters.keywords.map(keyword => `primary_keywords = "${keyword}"`).join(' OR ')
       filterArray.push(`(${keywordFilter})`)
     }
@@ -109,24 +242,48 @@ class MeiliSearchService {
     return filterArray
   }
 
-  private buildSort(sortBy: string, sortDirection: 'asc' | 'desc'): string[] {
-    // Note: MeiliSearch only supports sorting by sortable attributes
-    // Currently only 'channel_id' and 'title' are sortable
+  private async buildSort(sortBy: string, sortDirection: 'asc' | 'desc'): Promise<string[]> {
+    const config = await this.getIndexConfig()
+
+    // Helper function to check if an attribute is sortable
+    const isSortable = (attribute: string) => config.sortableAttributes.includes(attribute)
+
     switch (sortBy) {
       case 'title':
       case 'title-desc':
-        return [`title:${sortBy === 'title-desc' ? 'desc' : sortDirection}`]
+        if (isSortable('title')) {
+          return [`title:${sortBy === 'title-desc' ? 'desc' : sortDirection}`]
+        }
+        break
       case 'channel':
-        return [`channel_id:${sortDirection}`]
+        if (isSortable('channel_id')) {
+          return [`channel_id:${sortDirection}`]
+        }
+        break
       case 'views':
       case 'views-asc':
+        if (isSortable('view_count')) {
+          return [`view_count:${sortBy === 'views-asc' ? 'asc' : sortDirection}`]
+        }
+        break
       case 'newest':
+        if (isSortable('published_at')) {
+          return [`published_at:desc`]
+        }
+        break
       case 'oldest':
+        if (isSortable('published_at')) {
+          return [`published_at:asc`]
+        }
+        break
       case 'relevance':
       default:
-        // For non-sortable fields, we'll handle sorting client-side
+        // Relevance sorting is handled by Meilisearch's ranking rules
         return []
     }
+
+    // If the requested sort field is not sortable, return empty array for client-side sorting
+    return []
   }
 
   async searchThumbnails(params: SearchParams): Promise<ApiResponse<SearchResult>> {
@@ -135,15 +292,18 @@ class MeiliSearchService {
       const limit = params.limit || 20
       const offset = (page - 1) * limit
 
-      const filters = this.buildFilters(params.filters)
-      const sort = this.buildSort(params.filters.sortBy, params.filters.sortDirection)
+      // Get dynamic configuration
+      const config = await this.getIndexConfig()
+
+      const filters = await this.buildFilters(params.filters)
+      const sort = await this.buildSort(params.filters.sortBy, params.filters.sortDirection)
 
       const searchParams: MeiliSearchParams = {
         q: params.query || '',
         limit,
         offset,
-        facets: ['type', 'emotion', 'face_presence', 'layout_style', 'color_palette'],
-        attributesToHighlight: ['title', 'description', 'channel_name', 'primary_keywords'],
+        facets: config.facetableAttributes,
+        attributesToHighlight: config.highlightableAttributes,
         highlightPreTag: '<mark>',
         highlightPostTag: '</mark>',
       }
@@ -246,6 +406,8 @@ class MeiliSearchService {
 
   async getStats(): Promise<ApiResponse<{ total: number; facets: Record<string, Record<string, number>> }>> {
     try {
+      const config = await this.getIndexConfig()
+
       const response = await this.makeRequest<MeiliSearchResponse>(
         '/indexes/thumbnails/search',
         {
@@ -253,7 +415,7 @@ class MeiliSearchService {
           body: JSON.stringify({
             q: '',
             limit: 0,
-            facets: ['type', 'emotion', 'face_presence', 'layout_style', 'color_palette'],
+            facets: config.facetableAttributes,
           }),
         }
       )
@@ -296,6 +458,13 @@ class MeiliSearchService {
         }
       } else {
         // Direct MeiliSearch call from server
+        const config = await this.getIndexConfig()
+
+        // Use only searchable attributes that exist in the configuration
+        const retrieveAttributes = ['title', 'primary_keywords'].filter(attr =>
+          config.searchableAttributes.includes(attr)
+        )
+
         const response = await this.makeRequest<MeiliSearchResponse>(
           '/indexes/thumbnails/search',
           {
@@ -303,7 +472,7 @@ class MeiliSearchService {
             body: JSON.stringify({
               q: query,
               limit,
-              attributesToRetrieve: ['title', 'primary_keywords'],
+              attributesToRetrieve: retrieveAttributes.length > 0 ? retrieveAttributes : undefined,
             }),
           }
         )

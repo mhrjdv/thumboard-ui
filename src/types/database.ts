@@ -51,6 +51,17 @@ export interface MeiliSearchParams {
   attributesToHighlight?: string[]
   highlightPreTag?: string
   highlightPostTag?: string
+  attributesToRetrieve?: string[]
+}
+
+// Meilisearch Index Configuration Interface
+export interface MeilisearchIndexConfig {
+  sortableAttributes: string[]
+  filterableAttributes: string[]
+  searchableAttributes: string[]
+  rankingRules: string[]
+  facetableAttributes: string[]
+  highlightableAttributes: string[]
 }
 
 // Legacy types for backward compatibility

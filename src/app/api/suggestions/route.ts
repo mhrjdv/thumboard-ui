@@ -13,6 +13,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suggestions: [] })
     }
 
+    // Fetch searchable attributes to determine what to retrieve
+    let retrieveAttributes = ['title', 'primary_keywords']
+    try {
+      const configResponse = await fetch(`${MEILISEARCH_URL}/indexes/thumbnails/settings/searchable-attributes`, {
+        headers: {
+          'Authorization': `Bearer ${MEILISEARCH_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (configResponse.ok) {
+        const searchableAttributes = await configResponse.json()
+        retrieveAttributes = ['title', 'primary_keywords'].filter(attr =>
+          searchableAttributes.includes(attr)
+        )
+      }
+    } catch (configError) {
+      console.warn('Failed to fetch searchable attributes, using defaults:', configError)
+    }
+
     const response = await fetch(`${MEILISEARCH_URL}/indexes/thumbnails/search`, {
       method: 'POST',
       headers: {
@@ -22,7 +42,7 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         q: query,
         limit,
-        attributesToRetrieve: ['title', 'primary_keywords'],
+        attributesToRetrieve: retrieveAttributes.length > 0 ? retrieveAttributes : undefined,
       }),
     })
 
