@@ -292,7 +292,7 @@ export const Component = ({ mode }: Props) => {
             </p>
             <div className="flex items-center justify-center space-x-4">
               <a
-                href="https://linkedin.com/in/mihir-jadhav"
+                href="https://linkedin.com/in/-mihirjadhav"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} text-sm transition-colors duration-200 hover:underline`}
@@ -301,12 +301,12 @@ export const Component = ({ mode }: Props) => {
               </a>
               <span className={`${mode === 'dark' ? 'text-gray-600' : 'text-gray-400'} text-sm`}>•</span>
               <a
-                href="https://twitter.com/deb"
+                href="https://x.com/@heydebashis"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} text-sm transition-colors duration-200 hover:underline`}
               >
-                Deb on Twitter
+                Deb on X
               </a>
             </div>
           </motion.div>

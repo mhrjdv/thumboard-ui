@@ -322,7 +322,7 @@ async function sendTestEmail() {
             
             <div class="footer">
               <div class="footer-text">
-                Built by <a href="https://linkedin.com/in/mihir-jadhav" target="_blank" class="footer-link"><strong>Mihir</strong></a> & <a href="https://twitter.com/deb" target="_blank" class="footer-link"><strong>Deb</strong></a>
+ A fun project by <a href="https://linkedin.com/in/-mihirjadhav" target="_blank" class="footer-link"><strong>Mihir</strong></a> & <a href="https://x.com/@heydebashis" target="_blank" class="footer-link"><strong>Deb</strong></a>
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ We'll notify you as soon as we launch our AI-powered visual content discovery pl
 Visit Thumboard: https://thumboard.in
 
 ---
-Built by Mihir (https://linkedin.com/in/mihir-jadhav) & Deb (https://twitter.com/deb)
+A fun project by Mihir (https://linkedin.com/in/-mihirjadhav) & Deb (https://x.com/@heydebashis)
       `,
     };
 
