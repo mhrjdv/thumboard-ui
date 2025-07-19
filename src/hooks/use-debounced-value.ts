@@ -25,10 +25,10 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 /**
  * Custom hook for debounced search functionality
  * @param initialValue - Initial search value
- * @param delay - Debounce delay in milliseconds (default: 300)
+ * @param delay - Debounce delay in milliseconds (default: 100 for real-time feel)
  * @returns Object with search value, debounced value, and setter
  */
-export function useDebouncedSearch(initialValue = '', delay = 300) {
+export function useDebouncedSearch(initialValue = '', delay = 100) {
   const [searchValue, setSearchValue] = useState(initialValue)
   const debouncedSearchValue = useDebouncedValue(searchValue, delay)
 

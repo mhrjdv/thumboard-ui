@@ -6,11 +6,11 @@ import { SimpleThumbnailCard, ThumbnailModal } from './simple-thumbnail-card'
 import { ThumbnailCardSkeleton } from './thumbnail-card-skeleton'
 import { type ThumbnailData } from './thumbnail-card'
 import { Button } from './button'
-import { Loading } from './loading'
-import { AlertCircle, RefreshCw, Grid3X3, List, Filter } from 'lucide-react'
+
+import { AlertCircle, RefreshCw, Grid3X3, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThumbnails, useThumbnailActions } from '@/hooks/use-thumbnails'
-import { useIntersectionObserver } from '@/lib/performance'
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { type SearchParams, type Thumbnail } from '@/lib/db'
 import { defaultFilterState } from '@/types/filters'
 
@@ -24,10 +24,12 @@ interface ThumbnailGridProps {
   onItemDownload?: (id: string) => void
   onItemShare?: (id: string) => void
   className?: string
-  layout?: 'masonry' | 'grid' | 'grid-3' | 'list'
+  layout?: 'grid-3' | 'grid-5'
   columns?: 2 | 3 | 4 | 5
   useRealData?: boolean
   onToggleFilters?: () => void
+  viewLayout?: 'grid-3' | 'grid-5'
+  onViewLayoutChange?: (layout: 'grid-3' | 'grid-5') => void
 }
 
 const mockData: ThumbnailData[] = [
@@ -103,18 +105,27 @@ export function ThumbnailGrid({
   onItemDownload: _onItemDownload, // eslint-disable-line @typescript-eslint/no-unused-vars
   onItemShare: _onItemShare, // eslint-disable-line @typescript-eslint/no-unused-vars
   className,
-  layout = 'masonry',
+  layout = 'grid-3',
   columns: _columns = 3, // eslint-disable-line @typescript-eslint/no-unused-vars
   useRealData = false,
   onToggleFilters,
+  viewLayout: externalViewLayout,
+  onViewLayoutChange,
 }: ThumbnailGridProps) {
-  const [viewLayout, setViewLayout] = React.useState<'masonry' | 'grid' | 'grid-3' | 'list'>(layout)
+  const [internalViewLayout, setInternalViewLayout] = React.useState<'grid-3' | 'grid-5'>(
+    layout === 'grid-3' ? 'grid-3' :
+    layout === 'grid-5' ? 'grid-5' :
+    'grid-3' // default to grid-3 (3 columns)
+  )
+
+  // Use external layout state if provided, otherwise use internal state
+  const viewLayout = externalViewLayout || internalViewLayout
+  const setViewLayout = onViewLayoutChange || setInternalViewLayout
   const [selectedThumbnail, setSelectedThumbnail] = React.useState<Thumbnail | null>(null)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
-  const loadMoreRef = React.useRef<HTMLDivElement>(null)
 
   // Use real data if searchParams provided and useRealData is true
-  const thumbnailsQuery = useThumbnails(searchParams && useRealData ? searchParams : { filters: defaultFilterState })
+  const thumbnailsQuery = useThumbnails(useRealData ? (searchParams || { filters: defaultFilterState }) : { filters: defaultFilterState })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { likeThumbnail: _likeThumbnail, downloadThumbnail: _downloadThumbnail, incrementViews } = useThumbnailActions()
 
@@ -147,6 +158,20 @@ export function ThumbnailGrid({
   const hasMoreData = useRealData ? thumbnailsQuery.hasMore : hasMore
   const error = useRealData ? thumbnailsQuery.error : null
 
+  // Enhanced infinite scroll with new hook
+  const sentinelRef = useInfiniteScroll({
+    hasMore: hasMoreData,
+    isLoading: isLoadingMore,
+    onLoadMore: () => {
+      if (useRealData && thumbnailsQuery.loadMore) {
+        thumbnailsQuery.loadMore()
+      }
+    },
+    threshold: 0.01, // Very low threshold for earlier triggering
+    rootMargin: '500px', // Large margin for earlier loading
+    enabled: useRealData,
+  })
+
   // Modal handlers
   const handleThumbnailClick = (thumbnail: Thumbnail) => {
     setSelectedThumbnail(thumbnail)
@@ -162,29 +187,7 @@ export function ThumbnailGrid({
     setSelectedThumbnail(null)
   }
 
-  // Intersection observer for infinite scroll
-  const isLoadMoreVisible = useIntersectionObserver(loadMoreRef, {
-    threshold: 0.1,
-    rootMargin: '100px',
-  })
 
-  // Debounce infinite scroll to prevent rapid calls
-  const [canLoadMore, setCanLoadMore] = React.useState(true)
-
-  // Auto-load more when sentinel becomes visible
-  React.useEffect(() => {
-    if (isLoadMoreVisible && hasMoreData && !isLoading && !isLoadingMore && useRealData && canLoadMore) {
-      setCanLoadMore(false)
-      thumbnailsQuery.loadMore?.()
-
-      // Re-enable loading after a delay
-      const timer = setTimeout(() => {
-        setCanLoadMore(true)
-      }, 1000)
-
-      return () => clearTimeout(timer)
-    }
-  }, [isLoadMoreVisible, hasMoreData, isLoading, isLoadingMore, useRealData, canLoadMore, thumbnailsQuery])
 
 
 
@@ -210,23 +213,20 @@ export function ThumbnailGrid({
   }
 
   const getGridClasses = () => {
-    const baseClasses = 'gap-4 sm:gap-6'
+    const baseClasses = 'gap-2 sm:gap-3 md:gap-4 lg:gap-6'
 
     switch (viewLayout) {
-      case 'masonry':
-        return `masonry-container columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${baseClasses} space-y-0`
-      case 'list':
-        return `list-container flex flex-col space-y-4`
       case 'grid-3':
-        return `grid-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${baseClasses}`
-      case 'grid':
+        return `grid-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:justify-items-center ${baseClasses}`
+      case 'grid-5':
+        return `grid-container grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 lg:justify-items-center ${baseClasses}`
       default:
-        return `grid-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${baseClasses}`
+        return `grid-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:justify-items-center ${baseClasses}`
     }
   }
 
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn('w-full max-w-7xl', className)}>
       {/* Layout Controls */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -243,15 +243,6 @@ export function ThumbnailGrid({
             </Button>
           )}
           <Button
-            variant={viewLayout === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewLayout('grid')}
-            aria-label="Grid layout (5 columns)"
-            className="h-9 px-3"
-          >
-            <Grid3X3 className="h-4 w-4" />
-          </Button>
-          <Button
             variant={viewLayout === 'grid-3' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewLayout('grid-3')}
@@ -263,29 +254,24 @@ export function ThumbnailGrid({
             </svg>
           </Button>
           <Button
-            variant={viewLayout === 'masonry' ? 'default' : 'outline'}
+            variant={viewLayout === 'grid-5' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewLayout('masonry')}
-            aria-label="Masonry layout"
+            onClick={() => setViewLayout('grid-5')}
+            aria-label="Grid layout (5 columns)"
             className="h-9 px-3"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </Button>
-          <Button
-            variant={viewLayout === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewLayout('list')}
-            aria-label="List layout"
-            className="h-9 px-3"
-          >
-            <List className="h-4 w-4" />
+            <Grid3X3 className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="text-sm text-muted-foreground">
-          {displayData.length} {displayData.length === 1 ? 'item' : 'items'}
+          {useRealData && thumbnailsQuery.data ? (
+            <>
+              {thumbnailsQuery.data.total} {thumbnailsQuery.data.total === 1 ? 'item' : 'items'}
+            </>
+          ) : (
+            `${displayData.length} ${displayData.length === 1 ? 'item' : 'items'}`
+          )}
         </div>
       </div>
 
@@ -332,7 +318,7 @@ export function ThumbnailGrid({
           initial="hidden"
           animate="visible"
           className={getGridClasses()}
-          style={viewLayout === 'masonry' ? { columnFill: 'balance' } : undefined}
+
         >
           <AnimatePresence>
             {displayData.map((item, index) => (
@@ -340,12 +326,7 @@ export function ThumbnailGrid({
                 key={item.id}
                 variants={itemVariants}
                 layout
-                className={cn(
-                  viewLayout === 'masonry' && 'masonry-item break-inside-avoid mb-4 inline-block w-full',
-                  viewLayout === 'list' && 'w-full',
-                  viewLayout === 'grid' && 'w-full',
-                  viewLayout === 'grid-3' && 'w-full'
-                )}
+                className="w-full"
               >
                 <SimpleThumbnailCard
                   thumbnail={useRealData && thumbnailsQuery.data && thumbnailsQuery.data.data[index] ? thumbnailsQuery.data.data[index] : {
@@ -389,19 +370,17 @@ export function ThumbnailGrid({
         </div>
       )}
 
-      {/* Infinite scroll loading indicator */}
-      {isLoadingMore && (
-        <div className="flex justify-center items-center py-8">
-          <Loading text="Loading more..." />
+      {/* Seamless loading - no visible indicator for smooth UX */}
+
+      {/* Infinite scroll sentinel */}
+      {hasMoreData && (
+        <div ref={sentinelRef} className="h-20 flex justify-center items-center">
+          {/* This invisible element triggers loading when it comes into view */}
+          <div className="w-1 h-1 opacity-0">Loading trigger</div>
         </div>
       )}
 
-      {/* Infinite scroll sentinel */}
-      {hasMoreData && !isLoading && (
-        <div ref={loadMoreRef} className="h-10 flex justify-center items-center">
-          {/* This invisible element triggers loading when it comes into view */}
-        </div>
-      )}
+
 
       {/* Empty State */}
       {displayData.length === 0 && !isLoading && (

@@ -106,21 +106,7 @@ export const filterGroups: FilterGroup[] = [
       { id: 'balanced', label: 'Balanced', count: 18 },
     ],
   },
-  {
-    id: 'colors',
-    label: 'Color Palette',
-    type: 'color',
-    options: [
-      { id: '#FF0000', label: 'Red', color: '#FF0000', count: 1 },
-      { id: '#0000FF', label: 'Blue', color: '#0000FF', count: 2 },
-      { id: '#00FF00', label: 'Green', color: '#00FF00', count: 1 },
-      { id: '#FFFF00', label: 'Yellow', color: '#FFFF00', count: 2 },
-      { id: '#800080', label: 'Purple', color: '#800080', count: 1 },
-      { id: '#FFA500', label: 'Orange', color: '#FFA500', count: 1 },
-      { id: '#000000', label: 'Black', color: '#000000', count: 3 },
-      { id: '#FFFFFF', label: 'White', color: '#FFFFFF', count: 5 },
-    ],
-  },
+
   {
     id: 'categories',
     label: 'Legacy Categories',

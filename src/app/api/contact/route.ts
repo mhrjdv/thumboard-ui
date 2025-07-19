@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 // Cloudflare Turnstile verification
 async function verifyTurnstile(token: string): Promise<boolean> {
-  const secretKey = '0x4AAAAAABlqWR32YZiiXGraIphFtXbuJCs';
+  const secretKey = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAABlqWR32YZiiXGraIphFtXbuJCs';
   
   try {
     const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -53,17 +53,19 @@ export async function POST(request: NextRequest) {
 
     // Create transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: 'thumboard@gmail.com',
-        pass: 'idoi ptef xggm luck', // App password
+        user: process.env.SMTP_USER || 'thumboard@gmail.com',
+        pass: process.env.SMTP_PASS || 'idoi ptef xggm luck',
       },
     });
 
     // Email content
     const mailOptions = {
-      from: 'thumboard@gmail.com',
-      to: 'connect@thumboard.in',
+      from: process.env.EMAIL_FROM || 'thumboard@gmail.com',
+      to: process.env.EMAIL_TO || 'connect@thumboard.in',
       subject: `Contact Form: ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

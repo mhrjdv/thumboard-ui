@@ -10,7 +10,7 @@ interface SimpleThumbnailCardProps {
   thumbnail: Thumbnail
   onClick?: (thumbnail: Thumbnail) => void
   className?: string
-  layout?: 'grid' | 'grid-3' | 'masonry' | 'list'
+  layout?: 'grid-3' | 'grid-5' | 'masonry'
   priority?: boolean
 }
 
@@ -18,97 +18,28 @@ export function SimpleThumbnailCard({
   thumbnail,
   onClick,
   className,
-  layout = 'grid',
+  layout = 'masonry', // eslint-disable-line @typescript-eslint/no-unused-vars
   priority = false
 }: SimpleThumbnailCardProps) {
   const handleClick = () => {
     onClick?.(thumbnail)
   }
 
-  const formatViews = (views: number) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`
-    }
-    return views.toString()
-  }
 
-  if (layout === 'list') {
-    return (
-      <div
-        className={cn(
-          'group cursor-pointer transition-all duration-200 hover:shadow-lg',
-          'bg-card rounded-lg overflow-hidden border border-border/50 hover:border-border',
-          'flex gap-4 p-4',
-          className
-        )}
-        onClick={handleClick}
-      >
-        {/* Thumbnail Image */}
-        <div className="relative w-48 aspect-video flex-shrink-0 overflow-hidden rounded-md bg-muted">
-          <Image
-            src={thumbnail.image_url}
-            alt={thumbnail.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="192px"
-            priority={priority}
-          />
-        </div>
 
-        {/* Card Details */}
-        <div className="flex-1 space-y-3">
-          {/* Channel Name */}
-          <div className="text-base font-medium text-foreground truncate leading-tight">
-            {thumbnail.author_name}
-          </div>
 
-          {/* Title */}
-          <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {thumbnail.title}
-          </div>
-
-          {/* Keywords */}
-          {thumbnail.tags && thumbnail.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {thumbnail.tags.slice(0, 5).map((keyword, index) => (
-                <span
-                  key={index}
-                  className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[120px] transition-colors hover:bg-muted"
-                >
-                  {keyword}
-                </span>
-              ))}
-              {thumbnail.tags.length > 5 && (
-                <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
-                  +{thumbnail.tags.length - 5}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Views */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Eye className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">{formatViews(thumbnail.views)} views</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div
       className={cn(
-        'group cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg',
-        'bg-card rounded-lg overflow-hidden border border-border/50 hover:border-border',
+        'group cursor-pointer transition-all duration-200 hover:scale-[1.02]',
+        'rounded-lg overflow-hidden',
         className
       )}
       onClick={handleClick}
     >
-      {/* Thumbnail Image */}
-      <div className="relative w-full aspect-video overflow-hidden bg-muted">
+      {/* Thumbnail Image with Channel Chip */}
+      <div className="relative w-full aspect-video overflow-hidden bg-muted rounded-lg">
         <Image
           src={thumbnail.image_url}
           alt={thumbnail.title}
@@ -117,38 +48,12 @@ export function SimpleThumbnailCard({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
           priority={priority}
         />
-      </div>
 
-      {/* Card Details */}
-      <div className="p-3 space-y-3">
-        {/* Channel Name */}
-        <div className="text-sm font-medium text-foreground truncate leading-tight">
-          {thumbnail.author_name}
-        </div>
-
-        {/* Keywords */}
-        {thumbnail.tags && thumbnail.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {thumbnail.tags.slice(0, 3).map((keyword, index) => (
-              <span
-                key={index}
-                className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md truncate max-w-[100px] transition-colors hover:bg-muted"
-              >
-                {keyword}
-              </span>
-            ))}
-            {thumbnail.tags.length > 3 && (
-              <span className="inline-block px-2 py-1 text-xs bg-muted/80 text-muted-foreground rounded-md transition-colors hover:bg-muted">
-                +{thumbnail.tags.length - 3}
-              </span>
-            )}
+        {/* Channel Name Chip - Bottom Left */}
+        <div className="absolute bottom-2 left-2">
+          <div className="px-3 py-1.5 bg-black/40 backdrop-blur-lg text-white text-xs font-medium rounded-full truncate max-w-[140px] shadow-lg border border-white/20">
+            {thumbnail.author_name}
           </div>
-        )}
-
-        {/* Views */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Eye className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">{formatViews(thumbnail.views)} views</span>
         </div>
       </div>
     </div>

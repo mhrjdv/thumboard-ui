@@ -67,8 +67,8 @@ Allow all outbound traffic:
 4. Add these environment variables:
 
 ```
-MEILISEARCH_URL=https://api.thumboard.in
-MEILISEARCH_API_KEY=UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe
+MEILISEARCH_URL=https://your-meilisearch-instance.com
+MEILISEARCH_API_KEY=your_meilisearch_api_key_here
 NODE_ENV=production
 ```
 
@@ -96,7 +96,7 @@ The `vercel.json` file in the root directory contains the environment variables 
 
 ## SSL/HTTPS Configuration
 
-Since you're using `https://api.thumboard.in` for your MeiliSearch URL, make sure:
+Since you're using your MeiliSearch URL, make sure:
 
 1. Your domain has a valid SSL certificate
 2. MeiliSearch is configured to serve over HTTPS
@@ -108,8 +108,8 @@ After deployment, test your MeiliSearch connection:
 
 ```bash
 # Test MeiliSearch API
-curl -X GET 'https://api.thumboard.in/health' \
-  -H 'Authorization: Bearer UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe'
+curl -X GET 'https://your-meilisearch-instance.com/health' \
+  -H 'Authorization: Bearer your_meilisearch_api_key_here'
 ```
 
 ## Security Considerations

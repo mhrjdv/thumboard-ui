@@ -5,30 +5,24 @@ import { ThumbnailGrid } from '@/components/ui/thumbnail-grid'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Grid3X3, List, Columns3 } from 'lucide-react'
+import { Grid3X3, Columns3 } from 'lucide-react'
 
 export function GridLayoutTest() {
-  const [currentLayout, setCurrentLayout] = React.useState<'grid' | 'grid-3' | 'masonry' | 'list'>('grid')
+  const [currentLayout, setCurrentLayout] = React.useState<'grid-3' | 'grid-5'>('grid-3')
   const [testResults, setTestResults] = React.useState<{
-    grid: boolean
     'grid-3': boolean
-    masonry: boolean
-    list: boolean
+    'grid-5': boolean
   }>({
-    grid: false,
     'grid-3': false,
-    masonry: false,
-    list: false
+    'grid-5': false
   })
 
   const testLayouts = [
-    { key: 'grid', label: 'Grid Layout (5 cols)', icon: Grid3X3 },
     { key: 'grid-3', label: 'Grid Layout (3 cols)', icon: Columns3 },
-    { key: 'masonry', label: 'Masonry Layout', icon: Columns3 },
-    { key: 'list', label: 'List Layout', icon: List }
+    { key: 'grid-5', label: 'Grid Layout (5 cols)', icon: Grid3X3 }
   ] as const
 
-  const handleLayoutTest = (layout: 'grid' | 'grid-3' | 'masonry' | 'list') => {
+  const handleLayoutTest = (layout: 'grid-3' | 'grid-5') => {
     setCurrentLayout(layout)
     // Mark as tested
     setTestResults(prev => ({ ...prev, [layout]: true }))
@@ -86,10 +80,8 @@ export function GridLayoutTest() {
             <div className="p-3 bg-muted rounded-lg">
               <div className="text-sm font-medium">Current Layout: {currentLayout}</div>
               <div className="text-xs text-muted-foreground mt-1">
-                {currentLayout === 'grid' && 'Responsive grid with equal-height cards (up to 5 columns)'}
                 {currentLayout === 'grid-3' && 'Responsive grid with equal-height cards (up to 3 columns)'}
-                {currentLayout === 'masonry' && 'Pinterest-style masonry layout with variable heights'}
-                {currentLayout === 'list' && 'Horizontal list layout with detailed information'}
+                {currentLayout === 'grid-5' && 'Responsive grid with equal-height cards (up to 5 columns)'}
               </div>
             </div>
           </div>

@@ -1,8 +1,10 @@
 import { MeiliSearchThumbnail, MeiliSearchResponse, MeiliSearchParams, MeilisearchIndexConfig } from '@/types/database'
 import { FilterState } from '@/types/filters'
 
-const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'https://api.thumboard.in'
-const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY || 'UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe'
+// Environment variables - only available on server side
+// On client side, we use API routes to avoid CORS and credential exposure
+const MEILISEARCH_URL = typeof window === 'undefined' ? (process.env.MEILISEARCH_URL || '') : ''
+const MEILISEARCH_API_KEY = typeof window === 'undefined' ? (process.env.MEILISEARCH_API_KEY || '') : ''
 
 // Default configuration - can be overridden by fetching from the index
 const DEFAULT_INDEX_CONFIG: MeilisearchIndexConfig = {
@@ -289,7 +291,7 @@ class MeiliSearchService {
   async searchThumbnails(params: SearchParams): Promise<ApiResponse<SearchResult>> {
     try {
       const page = params.page || 1
-      const limit = params.limit || 20
+      const limit = Math.min(params.limit || 50, 1000) // MeiliSearch max limit is 1000
       const offset = (page - 1) * limit
 
       // Get dynamic configuration
@@ -356,8 +358,34 @@ class MeiliSearchService {
         }
       }
 
+      // Add randomization for diversity - shuffle results while maintaining some relevance
+      if (!params.query || params.query.trim() === '') {
+        // For empty queries, add more randomization to ensure diversity
+        sortedData = this.shuffleWithDiversity(sortedData)
+      } else {
+        // For search queries, add light randomization to top results
+        sortedData = this.lightShuffle(sortedData)
+      }
+
+      // Ensure first 12 results are from different channels for better diversity
+      if (page === 1) {
+        sortedData = this.ensureChannelDiversityInTop12(sortedData)
+      }
+
       const total = response.estimatedTotalHits
       const hasMore = offset + limit < total
+      
+      // Debug pagination info (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('MeiliSearch pagination:', {
+          total,
+          offset,
+          limit,
+          hasMore,
+          currentPage: page,
+          resultsCount: sortedData.length
+        })
+      }
 
       return {
         data: {
@@ -510,6 +538,94 @@ class MeiliSearchService {
         loading: false,
       }
     }
+  }
+
+  // Randomization methods for diversity
+  private shuffleWithDiversity(data: MeiliSearchThumbnail[]): MeiliSearchThumbnail[] {
+    // Group by channel to ensure diversity
+    const channelGroups = new Map<string, MeiliSearchThumbnail[]>()
+
+    data.forEach(item => {
+      const channel = item.channel_id || 'unknown'
+      if (!channelGroups.has(channel)) {
+        channelGroups.set(channel, [])
+      }
+      channelGroups.get(channel)!.push(item)
+    })
+
+    // Shuffle each group and then interleave them
+    const shuffledGroups = Array.from(channelGroups.values()).map(group =>
+      this.shuffleArray([...group])
+    )
+
+    // Interleave results from different channels for diversity
+    const result: MeiliSearchThumbnail[] = []
+    const maxLength = Math.max(...shuffledGroups.map(group => group.length))
+
+    for (let i = 0; i < maxLength; i++) {
+      shuffledGroups.forEach(group => {
+        if (group[i]) {
+          result.push(group[i])
+        }
+      })
+    }
+
+    return result
+  }
+
+  private lightShuffle(data: MeiliSearchThumbnail[]): MeiliSearchThumbnail[] {
+    // Light shuffle: keep top results mostly in order but add some randomization
+    const result = [...data]
+    const shuffleSize = Math.min(10, Math.floor(data.length * 0.3))
+
+    // Shuffle only the first portion to maintain relevance
+    for (let i = 0; i < shuffleSize; i++) {
+      const j = Math.floor(Math.random() * shuffleSize)
+      ;[result[i], result[j]] = [result[j], result[i]]
+    }
+
+    return result
+  }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    const result = [...array]
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[result[i], result[j]] = [result[j], result[i]]
+    }
+    return result
+  }
+
+  private ensureChannelDiversityInTop12(data: MeiliSearchThumbnail[]): MeiliSearchThumbnail[] {
+    if (data.length <= 12) return data
+
+    const result: MeiliSearchThumbnail[] = []
+    const usedChannels = new Set<string>()
+    const remaining: MeiliSearchThumbnail[] = []
+
+    // First pass: collect one item from each unique channel for top 12
+    for (const item of data) {
+      const channelId = item.channel_id || 'unknown'
+
+      if (result.length < 12 && !usedChannels.has(channelId)) {
+        result.push(item)
+        usedChannels.add(channelId)
+      } else {
+        remaining.push(item)
+      }
+    }
+
+    // If we don't have 12 unique channels, fill remaining slots
+    let remainingIndex = 0
+    while (result.length < 12 && remainingIndex < remaining.length) {
+      result.push(remaining[remainingIndex])
+      remainingIndex++
+    }
+
+    // Add the rest of the items
+    result.push(...remaining.slice(remainingIndex))
+
+    return result
   }
 }
 

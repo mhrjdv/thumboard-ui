@@ -31,10 +31,11 @@ cd thumboard-ui
 # Install dependencies
 pnpm install
 
-# Copy environment variables
-cp .env.example .env.local
+# Set up environment variables
+pnpm setup
 
-# Start development server
+# Edit .env with your actual MeiliSearch credentials
+# Then start development server
 pnpm dev
 ```
 
@@ -116,6 +117,22 @@ Built on top of shadcn/ui with custom theming:
 
 ### Environment Variables
 
+The application uses two environment files:
+
+- **`.env`** - Development environment variables
+- **`.env.production`** - Production environment variables
+
+Required variables:
+```bash
+# MeiliSearch Configuration (required)
+MEILISEARCH_URL=https://your-meilisearch-instance.com
+MEILISEARCH_API_KEY=your_meilisearch_api_key_here
+
+# Node Environment
+NODE_ENV=development
+```
+
+Optional variables:
 ```bash
 # Supabase Configuration (optional)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url

@@ -129,8 +129,8 @@ Server → MeiliSearch API → Response
 
 ### Environment Variables
 ```bash
-MEILISEARCH_URL=https://api.thumboard.in
-MEILISEARCH_API_KEY=UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe
+MEILISEARCH_URL=https://your-meilisearch-instance.com
+MEILISEARCH_API_KEY=your_meilisearch_api_key_here
 NODE_ENV=production
 ```
 

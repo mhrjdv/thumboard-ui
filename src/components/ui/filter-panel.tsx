@@ -10,12 +10,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils'
 import { filterGroups, sortOptions, type FilterState, type FilterGroup, defaultFilterState } from '@/types/filters'
 
+
 interface FilterPanelProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
   className?: string
   isMobile?: boolean
   filterGroups?: FilterGroup[]
+  isCollapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 interface FilterGroupComponentProps {
@@ -97,28 +100,7 @@ function FilterGroupComponent({ group, filters, onFiltersChange }: FilterGroupCo
             </div>
           )}
 
-          {group.type === 'color' && group.options && (
-            <div className="grid grid-cols-4 gap-2">
-              {group.options.map((option) => {
-                const currentValues = filters[group.id as keyof FilterState] as string[] || []
-                const isSelected = currentValues.includes(option.id)
-                
-                return (
-                  <button
-                    key={option.id}
-                    className={cn(
-                      'w-8 h-8 rounded-full border-2 transition-all',
-                      isSelected ? 'border-foreground scale-110' : 'border-border hover:scale-105'
-                    )}
-                    style={{ backgroundColor: option.color }}
-                    onClick={() => handleCheckboxChange(option.id, !isSelected)}
-                    aria-label={option.label}
-                    title={`${option.label} (${option.count})`}
-                  />
-                )
-              })}
-            </div>
-          )}
+
 
           {group.type === 'range' && (
             <div className="space-y-3">
@@ -150,7 +132,9 @@ export function FilterPanel({
   onFiltersChange,
   className,
   isMobile = false,
-  filterGroups: customFilterGroups = filterGroups
+  filterGroups: customFilterGroups = filterGroups,
+  isCollapsed = false,
+  onToggleCollapse
 }: FilterPanelProps) {
   const handleSortChange = (value: string) => {
     const sortOption = sortOptions.find(option => option.id === value)
@@ -172,7 +156,7 @@ export function FilterPanel({
     count += filters.categories.length
     count += filters.emotions.length
     count += filters.types.length
-    count += filters.colors.length
+
     if (filters.dateRange.start || filters.dateRange.end) count += 1
     if (filters.priceRange.min > 0 || filters.priceRange.max < 1000) count += 1
     return count
@@ -201,9 +185,8 @@ export function FilterPanel({
 
       {/* Filter Groups */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-foreground">Filters</h3>
-          {activeFilterCount > 0 && (
+        {activeFilterCount > 0 && (
+          <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
@@ -212,8 +195,8 @@ export function FilterPanel({
             >
               Clear all ({activeFilterCount})
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {customFilterGroups.map((group) => (
@@ -256,8 +239,31 @@ export function FilterPanel({
   }
 
   return (
-    <div className={cn('w-64 bg-card border rounded-lg p-4', className)}>
-      <FilterContent />
+    <div className={cn(
+      'bg-card border rounded-lg p-4',
+      isCollapsed ? 'w-12' : 'w-64',
+      className
+    )}>
+      {/* Header with collapse toggle */}
+      <div className="flex items-center justify-between mb-4">
+        {!isCollapsed && <h3 className="text-sm font-medium text-foreground">Filters</h3>}
+        {onToggleCollapse && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleCollapse}
+            className="h-6 w-6 p-0"
+          >
+            {isCollapsed ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        )}
+      </div>
+      
+      {!isCollapsed && <FilterContent />}
     </div>
   )
 }

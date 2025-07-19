@@ -12,6 +12,8 @@ export function useThumbnails(searchParams: SearchParams) {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const [totalLoaded, setTotalLoaded] = useState(0)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   // Reset when search params change
   const paramsKey = JSON.stringify(searchParams)
@@ -35,10 +37,13 @@ export function useThumbnails(searchParams: SearchParams) {
     setError(null)
 
     try {
+      // Increased page size for better infinite scroll performance
+      const dynamicLimit = pageNum === 1 ? 50 : 50 // Consistent page size for better UX
+
       const result = await dbService.searchThumbnails({
         ...searchParams,
         page: pageNum,
-        limit: 20, // Load 20 items per page
+        limit: dynamicLimit,
       })
 
       if (result.error) {
@@ -57,13 +62,31 @@ export function useThumbnails(searchParams: SearchParams) {
           setAllData([])
         }
       } else if (result.data) {
+
         setData(result.data)
-        setHasMore(result.data.hasMore)
+        
+        // Calculate hasMore based on total loaded vs total available
+        const newTotalLoaded = append ? totalLoaded + result.data!.data.length : result.data!.data.length
+        const newHasMore = newTotalLoaded < result.data!.total
+
+
+
+        setHasMore(newHasMore)
+        setTotalLoaded(newTotalLoaded)
 
         if (append && pageNum > 1) {
-          setAllData(prev => [...prev, ...result.data!.data])
+          setAllData(prev => {
+            // Prevent duplicates by checking IDs
+            const existingIds = new Set(prev.map(item => item.id))
+            const newItems = result.data!.data.filter(item => !existingIds.has(item.id))
+            const updatedData = [...prev, ...newItems]
+
+            return updatedData
+          })
         } else {
           setAllData(result.data.data)
+          setIsInitialLoad(false)
+
         }
       }
     } catch (error) {
@@ -77,27 +100,33 @@ export function useThumbnails(searchParams: SearchParams) {
 
     setLoading(false)
     setLoadingMore(false)
-  }, [searchParams])
+  }, [searchParams, totalLoaded])
 
   // Reset and fetch when params change
   useEffect(() => {
     if (paramsKey !== prevParamsKey.current) {
       prevParamsKey.current = paramsKey
       setPage(1)
+      setTotalLoaded(0)
+      setIsInitialLoad(true)
+      setHasMore(true)
       fetchThumbnails(1, false)
     }
   }, [paramsKey, fetchThumbnails])
 
   const loadMore = useCallback(() => {
-    if (!loadingMore && hasMore) {
+    if (!loadingMore && hasMore && !loading) {
       const nextPage = page + 1
       setPage(nextPage)
       fetchThumbnails(nextPage, true)
     }
-  }, [page, loadingMore, hasMore, fetchThumbnails])
+  }, [page, loadingMore, hasMore, loading, fetchThumbnails])
 
   const refetch = useCallback(() => {
     setPage(1)
+    setTotalLoaded(0)
+    setIsInitialLoad(true)
+    setHasMore(true)
     fetchThumbnails(1, false)
   }, [fetchThumbnails])
 
@@ -109,6 +138,8 @@ export function useThumbnails(searchParams: SearchParams) {
     refetch,
     hasMore,
     loadMore,
+    totalLoaded,
+    isInitialLoad,
   }
 }
 

@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'https://api.thumboard.in'
-const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY || 'UQtp0G7rendEVtVzssxbGOwqP030IhXh3040m5HQQsCQMvaMlGVJ91l3bKjf9FlQmRUCxD9nelf6yOZ3aHrNAgU0Jg37FsS4xJ4ljC6iz3S3Gijb88MODkgmbhFsAhxe'
+const MEILISEARCH_URL = process.env.MEILISEARCH_URL
+const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate environment variables
+    if (!MEILISEARCH_URL || !MEILISEARCH_API_KEY) {
+      return NextResponse.json(
+        {
+          error: 'MeiliSearch configuration missing',
+          details: 'MEILISEARCH_URL and MEILISEARCH_API_KEY environment variables are required'
+        },
+        { status: 500 }
+      )
+    }
     const body = await request.json()
     
     const response = await fetch(`${MEILISEARCH_URL}/indexes/thumbnails/search`, {

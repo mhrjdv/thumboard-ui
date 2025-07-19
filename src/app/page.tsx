@@ -18,11 +18,11 @@ export default function Home() {
         </div>
       }>
         <ContentBrowser
-          onSearch={(query) => console.log('Search:', query)}
-          onItemClick={(id) => console.log('Item clicked:', id)}
-          onItemLike={(id) => console.log('Item liked:', id)}
-          onItemDownload={(id) => console.log('Item downloaded:', id)}
-          onItemShare={(id) => console.log('Item shared:', id)}
+          onSearch={() => {}}
+          onItemClick={() => {}}
+          onItemLike={() => {}}
+          onItemDownload={() => {}}
+          onItemShare={() => {}}
         />
       </Suspense>
     </div>

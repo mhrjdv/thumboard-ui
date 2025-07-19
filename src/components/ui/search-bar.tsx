@@ -102,12 +102,12 @@ export function SearchBar({
           role="searchbox"
         />
         
-        {/* Loading indicator or clear button */}
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+        {/* Loading indicator, clear button, or Command+K indicator */}
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
           {loading && (
             <Loader2 className={cn('animate-spin text-muted-foreground', iconSizes[size])} />
           )}
-          
+
           {showClearButton && searchValue && !loading && (
             <Button
               type="button"
@@ -119,6 +119,14 @@ export function SearchBar({
             >
               <X className={cn('text-muted-foreground hover:text-foreground', iconSizes[size])} />
             </Button>
+          )}
+
+          {/* Command+K indicator */}
+          {!loading && !searchValue && (
+            <div className="hidden sm:flex items-center space-x-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded border">
+              <span className="font-mono">⌘</span>
+              <span>K</span>
+            </div>
           )}
         </div>
       </div>

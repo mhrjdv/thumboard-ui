@@ -151,17 +151,15 @@ function shallowEqual(a: unknown, b: unknown): boolean {
 // Performance monitoring
 export function measurePerformance<T extends (...args: unknown[]) => unknown>(
   fn: T,
-  name?: string
+  _name?: string // eslint-disable-line @typescript-eslint/no-unused-vars
 ): T {
   return ((...args: Parameters<T>) => {
-    const start = performance.now()
+    const _start = performance.now() // eslint-disable-line @typescript-eslint/no-unused-vars
     const result = fn(...args)
-    const end = performance.now()
-    
-    if (name) {
-      console.log(`${name} took ${end - start} milliseconds`)
-    }
-    
+    const _end = performance.now() // eslint-disable-line @typescript-eslint/no-unused-vars
+
+    // Performance measurement completed
+
     return result
   }) as T
 }

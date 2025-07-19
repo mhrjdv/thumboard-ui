@@ -161,7 +161,10 @@ class MeiliSearchDatabaseService {
   async likeThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       // Since we don't have a backend for likes, we'll simulate it
-      console.log(`Liked thumbnail: ${thumbnailId}`)
+      // Debug log (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Liked thumbnail: ${thumbnailId}`)
+      }
       return { data: true, error: null, loading: false }
     } catch (error) {
       return {
@@ -175,7 +178,10 @@ class MeiliSearchDatabaseService {
   async downloadThumbnail(thumbnailId: string, _userId: string): Promise<ApiResponse<boolean>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       // Since we don't have a backend for downloads, we'll simulate it
-      console.log(`Downloaded thumbnail: ${thumbnailId}`)
+      // Debug log (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Downloaded thumbnail: ${thumbnailId}`)
+      }
       return { data: true, error: null, loading: false }
     } catch (error) {
       return {
@@ -186,10 +192,9 @@ class MeiliSearchDatabaseService {
     }
   }
 
-  async incrementViews(thumbnailId: string): Promise<ApiResponse<boolean>> {
+  async incrementViews(_thumbnailId: string): Promise<ApiResponse<boolean>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       // Since we don't have a backend for view tracking, we'll simulate it
-      console.log(`Incremented views for thumbnail: ${thumbnailId}`)
       return { data: true, error: null, loading: false }
     } catch (error) {
       return {
