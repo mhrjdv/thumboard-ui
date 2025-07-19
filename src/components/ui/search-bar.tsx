@@ -4,7 +4,6 @@ import * as React from 'react'
 import { Search, X, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useDebouncedSearch } from '@/hooks/use-debounced-value'
 import { cn } from '@/lib/utils'
 
 interface SearchBarProps {
@@ -18,6 +17,7 @@ interface SearchBarProps {
   size?: 'sm' | 'md' | 'lg'
   showClearButton?: boolean
   autoFocus?: boolean
+  value?: string
 }
 
 export function SearchBar({
@@ -31,24 +31,25 @@ export function SearchBar({
   size = 'md',
   showClearButton = true,
   autoFocus = false,
+  value = '',
 }: SearchBarProps) {
-  const { searchValue, debouncedSearchValue, setSearchValue } = useDebouncedSearch()
+  const [searchValue, setSearchValue] = React.useState(value)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
-  // Call onChange when search value changes (immediate)
+  // Update internal state when external value changes
   React.useEffect(() => {
-    onChange?.(searchValue)
-  }, [searchValue, onChange])
+    setSearchValue(value)
+  }, [value])
 
-  // Call onSearch when debounced value changes (including empty string for real-time)
-  React.useEffect(() => {
-    if (onSearch) {
-      onSearch(debouncedSearchValue)
-    }
-  }, [debouncedSearchValue, onSearch])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setSearchValue(newValue)
+    onChange?.(newValue)
+  }
 
   const handleClear = () => {
     setSearchValue('')
+    onChange?.('')
     onClear?.()
     inputRef.current?.focus()
   }
@@ -89,7 +90,7 @@ export function SearchBar({
           type="text"
           placeholder={placeholder}
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           autoFocus={autoFocus}
@@ -119,14 +120,6 @@ export function SearchBar({
             >
               <X className={cn('text-muted-foreground hover:text-foreground', iconSizes[size])} />
             </Button>
-          )}
-
-          {/* Command+K indicator */}
-          {!loading && !searchValue && (
-            <div className="hidden sm:flex items-center space-x-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded border">
-              <span className="font-mono">⌘</span>
-              <span>K</span>
-            </div>
           )}
         </div>
       </div>

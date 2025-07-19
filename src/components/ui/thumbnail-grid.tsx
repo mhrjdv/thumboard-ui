@@ -7,7 +7,7 @@ import { ThumbnailCardSkeleton } from './thumbnail-card-skeleton'
 import { type ThumbnailData } from './thumbnail-card'
 import { Button } from './button'
 
-import { AlertCircle, RefreshCw, Grid3X3, Filter } from 'lucide-react'
+import { AlertCircle, RefreshCw, Grid3X3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThumbnails, useThumbnailActions } from '@/hooks/use-thumbnails'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
@@ -27,7 +27,6 @@ interface ThumbnailGridProps {
   layout?: 'grid-3' | 'grid-5'
   columns?: 2 | 3 | 4 | 5
   useRealData?: boolean
-  onToggleFilters?: () => void
   viewLayout?: 'grid-3' | 'grid-5'
   onViewLayoutChange?: (layout: 'grid-3' | 'grid-5') => void
 }
@@ -108,7 +107,6 @@ export function ThumbnailGrid({
   layout = 'grid-3',
   columns: _columns = 3, // eslint-disable-line @typescript-eslint/no-unused-vars
   useRealData = false,
-  onToggleFilters,
   viewLayout: externalViewLayout,
   onViewLayoutChange,
 }: ThumbnailGridProps) {
@@ -230,18 +228,6 @@ export function ThumbnailGrid({
       {/* Layout Controls */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          {/* Filter Toggle Button (mobile) */}
-          {onToggleFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onToggleFilters}
-              className="h-9 px-3 lg:hidden"
-              aria-label="Toggle filters"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          )}
           <Button
             variant={viewLayout === 'grid-3' ? 'default' : 'outline'}
             size="sm"

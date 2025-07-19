@@ -17,6 +17,7 @@ interface SearchSuggestion {
 interface SearchWithSuggestionsProps {
   placeholder?: string
   onSearch?: (query: string) => void
+  onChange?: (query: string) => void
   onSuggestionSelect?: (suggestion: SearchSuggestion) => void
   suggestions?: SearchSuggestion[]
   recentSearches?: string[]
@@ -24,6 +25,8 @@ interface SearchWithSuggestionsProps {
   disabled?: boolean
   className?: string
   showSuggestions?: boolean
+  value?: string
+  autoFocus?: boolean
 }
 
 const mockSuggestions: SearchSuggestion[] = [
@@ -42,6 +45,7 @@ const mockRecentSearches = [
 export function SearchWithSuggestions({
   placeholder = 'Search for images, videos, and more...',
   onSearch,
+  onChange,
   onSuggestionSelect,
   suggestions = mockSuggestions,
   recentSearches = mockRecentSearches,
@@ -49,11 +53,18 @@ export function SearchWithSuggestions({
   disabled = false,
   className,
   showSuggestions = true,
+  value = '',
+  autoFocus = false,
 }: SearchWithSuggestionsProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const [selectedIndex, setSelectedIndex] = React.useState(-1)
-  const [searchQuery, setSearchQuery] = React.useState('')
+  const [searchQuery, setSearchQuery] = React.useState(value)
   const containerRef = React.useRef<HTMLDivElement>(null)
+
+  // Sync internal state with external value
+  React.useEffect(() => {
+    setSearchQuery(value)
+  }, [value])
 
   // Get real-time suggestions from MeiliSearch
   const { suggestions: meiliSuggestions, loading: suggestionsLoading } = useSuggestions(
@@ -80,26 +91,26 @@ export function SearchWithSuggestions({
     return [...recent, ...searchSuggestions]
   }, [recentSearches, suggestions, meiliSuggestions])
 
-  const handleSearch = (query: string) => {
+  const handleSearch = React.useCallback((query: string) => {
     setIsOpen(false)
     setSelectedIndex(-1)
     onSearch?.(query)
-  }
+  }, [onSearch])
 
-  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+  const handleSuggestionClick = React.useCallback((suggestion: SearchSuggestion) => {
     setIsOpen(false)
     setSelectedIndex(-1)
     onSuggestionSelect?.(suggestion)
     onSearch?.(suggestion.text)
-  }
+  }, [onSearch, onSuggestionSelect])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
     if (!isOpen) return
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setSelectedIndex((prev) => 
+        setSelectedIndex((prev) =>
           prev < allSuggestions.length - 1 ? prev + 1 : prev
         )
         break
@@ -118,7 +129,7 @@ export function SearchWithSuggestions({
         setSelectedIndex(-1)
         break
     }
-  }
+  }, [isOpen, allSuggestions, selectedIndex, handleSuggestionClick])
 
   // Close suggestions when clicking outside
   React.useEffect(() => {
@@ -149,15 +160,17 @@ export function SearchWithSuggestions({
       <div onKeyDown={handleKeyDown}>
         <SearchBar
           placeholder={placeholder}
+          value={searchQuery}
           onSearch={handleSearch}
           onChange={(query) => {
             setSearchQuery(query)
             setIsOpen(query.length > 0)
+            onChange?.(query)
           }}
           loading={loading || suggestionsLoading}
           disabled={disabled}
           size="lg"
-          autoFocus
+          autoFocus={autoFocus}
           className="w-full"
         />
       </div>

@@ -10,9 +10,8 @@ import { Logo } from '@/components/ui/logo'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useFilters } from '@/hooks/use-filters'
-import { useDebouncedSearch } from '@/hooks/use-debounced-value'
 import { useDebounce } from '@/lib/performance'
-import { useCommandPalette } from '@/hooks/use-command-palette'
+
 import { SkipLinks } from '@/lib/accessibility'
 import { cn } from '@/lib/utils'
 
@@ -34,9 +33,8 @@ export function ContentBrowser({
   onItemShare,
 }: ContentBrowserProps) {
   const { filters, updateFilters, filterGroupsWithCounts } = useFilters()
-  const { debouncedSearchValue, setSearchValue } = useDebouncedSearch()
-  // Initialize command palette hook for Cmd+K functionality (focuses search bar)
-  useCommandPalette()
+  const [searchValue, setSearchValue] = React.useState('')
+
   const [isMobile, setIsMobile] = React.useState(false)
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
   const [filtersCollapsed, setFiltersCollapsed] = React.useState(false)
@@ -44,6 +42,7 @@ export function ContentBrowser({
 
   // Additional debouncing for performance
   const debouncedFilters = useDebounce(filters, 300)
+  const debouncedSearchValue = useDebounce(searchValue, 300)
 
   // Handle responsive design and sidebar management
   React.useEffect(() => {
@@ -61,15 +60,17 @@ export function ContentBrowser({
 
   // Handle search
   React.useEffect(() => {
-    if (debouncedSearchValue) {
-      onSearch?.(debouncedSearchValue)
-    }
+    onSearch?.(debouncedSearchValue)
   }, [debouncedSearchValue, onSearch])
 
-  const handleSearch = (query: string) => {
+  const handleSearch = React.useCallback((query: string) => {
     setSearchValue(query)
     onSearch?.(query)
-  }
+  }, [onSearch])
+
+  const handleSearchChange = React.useCallback((query: string) => {
+    setSearchValue(query)
+  }, [])
 
   return (
     <div className={cn('min-h-screen bg-background', className)}>
@@ -91,8 +92,11 @@ export function ContentBrowser({
               <ErrorBoundary>
                 <SearchWithSuggestions
                   placeholder="Search thumbnails, channels, keywords..."
+                  value={searchValue}
                   onSearch={handleSearch}
+                  onChange={handleSearchChange}
                   onSuggestionSelect={(suggestion) => handleSearch(suggestion.text)}
+                  autoFocus={!isMobile}
                 />
               </ErrorBoundary>
             </div>
@@ -136,13 +140,27 @@ export function ContentBrowser({
           <ErrorBoundary>
             <SearchWithSuggestions
               placeholder="Search thumbnails, channels, keywords..."
+              value={searchValue}
               onSearch={handleSearch}
+              onChange={handleSearchChange}
               onSuggestionSelect={(suggestion) => handleSearch(suggestion.text)}
+              autoFocus={false}
             />
           </ErrorBoundary>
         </div>
 
-
+        {/* Mobile Filter Button */}
+        <div className="px-4 pb-3">
+          <ErrorBoundary>
+            <FilterPanel
+              filters={filters}
+              onFiltersChange={updateFilters}
+              filterGroups={filterGroupsWithCounts}
+              isMobile={true}
+              className="w-full"
+            />
+          </ErrorBoundary>
+        </div>
       </div>
 
       {/* Content Section */}
@@ -165,7 +183,7 @@ export function ContentBrowser({
                     filters={filters}
                     onFiltersChange={updateFilters}
                     filterGroups={filterGroupsWithCounts}
-                    isMobile={isMobile}
+                    isMobile={false}
                     isCollapsed={filtersCollapsed}
                     onToggleCollapse={() => setFiltersCollapsed(!filtersCollapsed)}
                   />
@@ -200,7 +218,6 @@ export function ContentBrowser({
               onItemLike={onItemLike}
               onItemDownload={onItemDownload}
               onItemShare={onItemShare}
-              onToggleFilters={() => setSidebarOpen(!sidebarOpen)}
               viewLayout={viewLayout}
               onViewLayoutChange={setViewLayout}
             />

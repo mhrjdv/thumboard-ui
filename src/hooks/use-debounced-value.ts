@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 /**
  * Custom hook that debounces a value
@@ -32,9 +32,13 @@ export function useDebouncedSearch(initialValue = '', delay = 100) {
   const [searchValue, setSearchValue] = useState(initialValue)
   const debouncedSearchValue = useDebouncedValue(searchValue, delay)
 
+  const stableSetSearchValue = useCallback((value: string) => {
+    setSearchValue(value)
+  }, [])
+
   return {
     searchValue,
     debouncedSearchValue,
-    setSearchValue,
+    setSearchValue: stableSetSearchValue,
   }
 }

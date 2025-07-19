@@ -216,7 +216,7 @@ export function FilterPanel({
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className={className}>
+          <Button variant="outline" size="sm" className={cn("min-h-[44px] touch-manipulation", className)}>
             <Filter className="h-4 w-4 mr-2" />
             Filters
             {activeFilterCount > 0 && (
@@ -226,7 +226,7 @@ export function FilterPanel({
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-80">
+        <SheetContent side="left" className="w-80 sm:w-80 max-w-[90vw]">
           <SheetHeader>
             <SheetTitle>Filters & Sort</SheetTitle>
           </SheetHeader>
