@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
               border-bottom: 1px solid #eaeaea;
             }
 
-            .logo-container {
+            /* .logo-container {
               margin-bottom: 16px;
             }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
               height: auto;
               max-width: 100%;
               display: none;
-            }
+            } */
 
             .header-text {
               font-size: 24px;
@@ -218,13 +218,13 @@ export async function POST(request: NextRequest) {
                 color: #888888;
               }
 
-              .logo-light {
+              /* .logo-light {
                 display: none !important;
               }
 
               .logo-dark {
                 display: block !important;
-              }
+              } */
 
               .content {
                 background-color: #111111;
@@ -295,18 +295,18 @@ export async function POST(request: NextRequest) {
         <body>
           <div class="email-container">
             <div class="header">
-              <div class="logo-container">
+              <!-- <div class="logo-container">
                 <!-- Light mode logo (default) -->
-                <img src="https://pub-98daee8ec10b4919b1ef774ced6f87b3.r2.dev/Full%20logo%20light.svg"
+                <!-- <img src="https://pub-98daee8ec10b4919b1ef774ced6f87b3.r2.dev/Full%20logo%20light.svg"
                      alt="Thumboard"
                      class="logo-light"
-                     style="display: block; margin: 0 auto; width: 180px; height: auto; max-width: 100%;" />
+                     style="display: block; margin: 0 auto; width: 180px; height: auto; max-width: 100%;" /> -->
                 <!-- Dark mode logo (hidden by default, shown in dark mode) -->
-                <img src="https://pub-98daee8ec10b4919b1ef774ced6f87b3.r2.dev/Full%20logo%20dark.svg"
+                <!-- <img src="https://pub-98daee8ec10b4919b1ef774ced6f87b3.r2.dev/Full%20logo%20dark.svg"
                      alt="Thumboard"
                      class="logo-dark"
-                     style="display: none; margin: 0 auto; width: 180px; height: auto; max-width: 100%;" />
-              </div>
+                     style="display: none; margin: 0 auto; width: 180px; height: auto; max-width: 100%;" /> -->
+              <!-- </div> -->
               <h1 class="header-text">Welcome to Thumboard!</h1>
               <p class="header-subtitle">You're on the waitlist</p>
             </div>
