@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thumboard Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .preview-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .preview-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .theme-toggle {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .theme-toggle button {
+      margin: 0 10px;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .theme-toggle button.active {
+      background: #000;
+      color: white;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <div class="preview-header">
+      <h1>Thumboard Email Template Preview</h1>
+      <p>Minimal Vercel/Next.js-inspired waitlist email template</p>
+    </div>
+    
+    <div class="theme-toggle">
+      <button onclick="showLight()" class="active" id="light-btn">Light Theme</button>
+      <button onclick="showDark()" id="dark-btn">Dark Theme</button>
+    </div>
+    
+    <iframe id="email-frame" srcdoc='<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Thumboard</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      color: #000000;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #eaeaea;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .header {
+      padding: 32px 32px 24px;
+      text-align: center;
+      background-color: #ffffff;
+      border-bottom: 1px solid #eaeaea;
+    }
+    
+    .logo-container {
+      margin-bottom: 16px;
+    }
+    
+    .logo {
+      width: 180px;
+      height: auto;
+      max-width: 100%;
+      /* Invert white logo to black for light theme */
+      filter: invert(1);
+    }
+    
+    .header-text {
+      font-size: 24px;
+      font-weight: 600;
+      color: #000000;
+      margin-bottom: 8px;
+      letter-spacing: -0.025em;
+    }
+    
+    .header-subtitle {
+      font-size: 16px;
+      color: #666666;
+      font-weight: 400;
+    }
+    
+    .content {
+      padding: 32px;
+      background-color: #ffffff;
+    }
+    
+    .greeting {
+      font-size: 16px;
+      color: #000000;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    
+    .info-section {
+      background-color: #fafafa;
+      border: 1px solid #eaeaea;
+      border-radius: 6px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .info-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #000000;
+      margin-bottom: 8px;
+      letter-spacing: -0.025em;
+    }
+    
+    .info-section p {
+      font-size: 14px;
+      color: #666666;
+      line-height: 1.5;
+      margin: 0;
+    }
+    
+    .cta-container {
+      text-align: center;
+      margin: 32px 0 24px;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background-color: #000000;
+      color: #ffffff;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: -0.025em;
+      transition: background-color 0.2s ease;
+    }
+    
+    .footer {
+      padding: 24px 32px;
+      background-color: #fafafa;
+      border-top: 1px solid #eaeaea;
+      text-align: center;
+    }
+    
+    .footer-text {
+      font-size: 14px;
+      color: #666666;
+      margin-bottom: 12px;
+    }
+    
+    .footer-links {
+      font-size: 14px;
+    }
+    
+    .footer-links a {
+      color: #0070f3;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Mobile responsiveness */
+    @media only screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      
+      .header,
+      .content,
+      .footer {
+        padding: 24px 20px;
+      }
+      
+      .logo {
+        width: 150px;
+      }
+      
+      .header-text {
+        font-size: 20px;
+      }
+      
+      .header-subtitle {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <div class="logo-container">
+        <img src="https://pub-98daee8ec10b4919b1ef774ced6f87b3.r2.dev/Full%20logo%20dark.svg"
+             alt="Thumboard"
+             class="logo"
+             style="display: block; margin: 0 auto;" />
+      </div>
+      <h1 class="header-text">Welcome to Thumboard!</h1>
+      <p class="header-subtitle">You are on the waitlist</p>
+    </div>
+    
+    <div class="content">
+      <p class="greeting">
+        Hi there! 👋<br><br>
+        Thank you for joining the Thumboard waitlist. We are excited to have you on board as we build the future of visual content discovery.
+      </p>
+      
+      <div class="info-section">
+        <h3>What is Next?</h3>
+        <p>We will notify you as soon as we launch. You will be among the first to experience Thumboard powerful visual search and discovery features.</p>
+      </div>
+      
+      <div class="info-section">
+        <h3>About Thumboard</h3>
+        <p>A visual content discovery platform that helps you find and explore content through intuitive visual search, smart filtering, and beautiful thumbnail browsing.</p>
+      </div>
+      
+      <div class="cta-container">
+        <a href="https://thumboard.in" class="cta-button">
+          Visit Thumboard
+        </a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p class="footer-text">
+        Built by <a href="https://linkedin.com/in/mihir-jadhav" target="_blank" style="color: #0070f3; text-decoration: none; font-weight: 600;"><strong>Mihir</strong></a> & <a href="https://twitter.com/deb" target="_blank" style="color: #0070f3; text-decoration: none; font-weight: 600;"><strong>Deb</strong></a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>'></iframe>
+  </div>
+
+  <script>
+    function showLight() {
+      document.getElementById('light-btn').classList.add('active');
+      document.getElementById('dark-btn').classList.remove('active');
+      // Light theme is default
+    }
+
+    function showDark() {
+      document.getElementById('dark-btn').classList.add('active');
+      document.getElementById('light-btn').classList.remove('active');
+      // Note: Dark theme would be applied via CSS media query in actual email clients
+      alert('Dark theme is automatically applied based on user email client preferences using CSS media queries.');
+    }
+  </script>
+</body>
+</html>
