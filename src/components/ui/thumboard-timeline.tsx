@@ -18,7 +18,7 @@ export function ThumboardTimeline() {
       id: 1,
       date: "Dec 2024",
       title: "2024 - Launch",
-      description: "Thumboard officially launched with a complete visual content discovery platform featuring advanced search, intelligent filtering, and modern UI components. The platform now serves thousands of users daily with lightning-fast search capabilities and an intuitive user interface."
+      description: "Thumboard officially launched with a complete AI-powered YouTube thumbnail discovery platform featuring advanced search, intelligent filtering, and modern UI components. The platform now serves thousands of users daily with lightning-fast search capabilities and an intuitive user interface."
     },
     {
       id: 2,
@@ -42,7 +42,7 @@ export function ThumboardTimeline() {
             Our Development Journey
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Follow the evolution of Thumboard from concept to the powerful visual content discovery platform it is today.
+            Follow the evolution of Thumboard from concept to the powerful AI-powered YouTube thumbnail discovery platform it is today.
           </p>
         </div>
 

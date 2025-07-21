@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Thumboard - Visual Content Discovery",
-  description: "Discover and explore visual content with blazing-fast search and intuitive filtering",
+  title: "Thumboard - AI-powered YouTube Thumbnail Search",
+  description: "Discover high-performing YouTube thumbnails from real creators. Smart search, advanced filters, and endless inspiration — all in one place.",
   icons: {
     icon: [
       {

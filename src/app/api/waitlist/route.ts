@@ -314,12 +314,12 @@ export async function POST(request: NextRequest) {
             <div class="content">
               <p class="greeting">
                 Hi there! 👋<br><br>
-                Thank you for joining the Thumboard waitlist. We're excited to have you on board as we build the future of visual content discovery.
+                Thank you for joining the Thumboard waitlist. We're excited to have you on board as we build the future of AI-powered YouTube thumbnail discovery.
               </p>
 
               <div class="info-section">
                 <h3>What's Next?</h3>
-                <p>We'll notify you as soon as we launch our AI-powered visual content discovery platform. You'll be among the first to experience Thumboard's intelligent search and discovery features.</p>
+                <p>We'll notify you as soon as we launch our AI-powered YouTube thumbnail discovery platform. You'll be among the first to experience Thumboard's intelligent search and discovery features.</p>
               </div>
 
               <div class="cta-container">
@@ -343,10 +343,10 @@ Welcome to Thumboard! 🚀
 
 Hi there! 👋
 
-Thank you for joining the Thumboard waitlist. We're excited to have you on board as we build the future of visual content discovery.
+Thank you for joining the Thumboard waitlist. We're excited to have you on board as we build the future of AI-powered YouTube thumbnail discovery.
 
 What's Next?
-We'll notify you as soon as we launch our AI-powered visual content discovery platform. You'll be among the first to experience Thumboard's intelligent search and discovery features.
+We'll notify you as soon as we launch our AI-powered YouTube thumbnail discovery platform. You'll be among the first to experience Thumboard's intelligent search and discovery features.
 
 Visit Thumboard: ${process.env.NEXT_PUBLIC_APP_URL || 'https://thumboard.in'}
 

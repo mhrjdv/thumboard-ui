@@ -4,7 +4,7 @@ import { Component } from "@/components/ui/waitlist";
 
 const DemoOne = () => {
   return (
-    <div className="w-full min-h-screen">
+    <div className="w-full h-screen overflow-hidden">
       <Component mode="light" />
     </div>
   );

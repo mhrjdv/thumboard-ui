@@ -56,12 +56,12 @@ export const Component = ({ mode }: Props) => {
   const isEmailValid = email.trim() !== '' && email.includes('@') && !isSubmitting;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden">
 
       {/* Header with Logo and Theme Toggle - Industry standard positioning */}
       <header className="relative z-20 w-full">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="flex items-center justify-between py-4 sm:py-6">
+          <div className="flex items-center justify-between py-2 sm:py-3">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -72,7 +72,6 @@ export const Component = ({ mode }: Props) => {
                 width={140}
                 height={36}
                 priority
-                className="w-auto h-8 sm:h-9 md:h-10"
               />
             </motion.div>
 
@@ -88,35 +87,95 @@ export const Component = ({ mode }: Props) => {
         </div>
       </header>
 
-      {/* Main Content - Centered with proper spacing */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md mx-auto -mt-[15%]">
+      {/* Main Content - Centered with top offset */}
+      <main className="relative z-10 flex-1 flex flex-col justify-center items-center h-full px-4 sm:px-6 lg:px-8 -mt-32">
+        <div className="w-full max-w-md mx-auto">
 
       {!showForm ? (
-          // Initial state - only show the announcement button
-          <motion.div
-            initial={{ opacity: 0, y: -30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{
-              duration: 0.8,
-              ease: [0.25, 0.46, 0.45, 0.94],
-              type: "spring",
-              stiffness: 100,
-              damping: 15
-            }}
-            className="flex items-center justify-center"
-          >
-            <HeroPill
-              href="#waitlist"
-              label="Join the waitlist for early access"
-              announcement="🚀 Beta"
-              isExternal={false}
-              onClick={handlePillClick}
-            />
-          </motion.div>
+          // Initial state - show description and announcement button
+          <div className="space-y-6">
+            {/* Description Text */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+              }}
+              className="text-center space-y-3"
+            >
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.2,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }}
+                className={`${mode === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-base sm:text-lg leading-relaxed`}
+              >
+                Thumboard is an AI-powered search and insights platform for YouTube thumbnails.
+              </motion.p>
+            </motion.div>
+
+            {/* Hero Pill Button */}
+            <motion.div
+              initial={{ opacity: 0, y: -30, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{
+                duration: 0.8,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                delay: 0.6
+              }}
+              className="flex items-center justify-center"
+            >
+              <HeroPill
+                href="#waitlist"
+                label="Join the waitlist for early access"
+                announcement="🚀 Beta"
+                isExternal={false}
+                onClick={handlePillClick}
+              />
+            </motion.div>
+          </div>
       ) : (
-          // Form state - show pill above form
-          <div className="space-y-8">
+          // Form state - show description, pill above form
+          <div className="space-y-6">
+            {/* Description Text */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+              }}
+              className="text-center space-y-3"
+            >
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.2,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }}
+                className={`${mode === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-base sm:text-lg leading-relaxed`}
+              >
+                Thumboard is an AI-powered search and insights platform for YouTube thumbnails.
+              </motion.p>
+
+            </motion.div>
+
+            {/* Hero Pill Button */}
             <motion.div
               initial={{ y: 0, scale: 1 }}
               animate={{ y: -20, scale: 0.95 }}
@@ -127,7 +186,7 @@ export const Component = ({ mode }: Props) => {
                 stiffness: 80,
                 damping: 20
               }}
-              className="mb-6 flex justify-center"
+              className="mb-4 flex justify-center"
             >
               <HeroPill
                 href="#waitlist"
@@ -142,7 +201,7 @@ export const Component = ({ mode }: Props) => {
                 <motion.div
                   id="waitlist-form"
                   ref={ref}
-                  className={`${mode === 'dark' ? 'bg-black/80 border border-zinc-600 backdrop-blur-sm' : 'bg-white/80 border border-gray-200 backdrop-blur-sm'} w-full rounded-xl ${submitted ? 'p-1' : 'p-6'} shadow-2xl`}
+                  className={`${mode === 'dark' ? 'bg-black/80 border border-zinc-600 backdrop-blur-sm' : 'bg-white/80 border border-gray-200 backdrop-blur-sm'} w-full rounded-xl ${submitted ? 'p-1' : 'p-4'} shadow-2xl`}
                   initial={{ opacity: 0, y: 60, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{
@@ -165,7 +224,7 @@ export const Component = ({ mode }: Props) => {
                       delay: 0.5,
                       ease: [0.25, 0.46, 0.45, 0.94]
                     }}
-                    className={`${mode === 'dark' ? 'text-white' : 'text-gray-800'} text-3xl font-bold mb-4`}
+                    className={`${mode === 'dark' ? 'text-white' : 'text-gray-800'} text-2xl font-bold mb-3`}
                   >
                     Join Thumboard Waitlist
                   </motion.h2>
@@ -177,7 +236,7 @@ export const Component = ({ mode }: Props) => {
                       delay: 0.7,
                       ease: [0.25, 0.46, 0.45, 0.94]
                     }}
-                    className={`${mode === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm mb-6`}
+                    className={`${mode === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-sm mb-4`}
                   >
                     Be the first to access Thumboard&apos;s visual content discovery platform. Enter your email below to join the waitlist.
                   </motion.p>
@@ -261,7 +320,7 @@ export const Component = ({ mode }: Props) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            className="mt-8"
+            className="mt-4"
           >
             {/* <Link
               href="/search"
@@ -276,7 +335,7 @@ export const Component = ({ mode }: Props) => {
       </main>
 
       {/* Footer with Credits */}
-      <footer className="relative z-10 w-full py-8 px-4 sm:px-6 lg:px-8">
+      <footer className="relative z-10 w-full py-4 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -284,31 +343,28 @@ export const Component = ({ mode }: Props) => {
             transition={{ duration: 0.6, delay: 1.0 }}
             className="text-center"
           >
-            <p className={`${mode === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm mb-2`}>
-              <strong>Fun Project by Mihir & Deb</strong>
-            </p>
-            <p className={`${mode === 'dark' ? 'text-gray-500' : 'text-gray-500'} text-xs mb-4`}>
-              Built with ❤️ using Next.js, TypeScript & Tailwind CSS
-            </p>
-            <div className="flex items-center justify-center space-x-4">
+            <p className={`${mode === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm mb-1`}>
+              Fun Project by{' '}
               <a
                 href="https://linkedin.com/in/-mihirjadhav"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} text-sm transition-colors duration-200 hover:underline`}
+                className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} font-bold transition-colors duration-200`}
               >
-                Mihir on LinkedIn
+                Mihir
               </a>
-              <span className={`${mode === 'dark' ? 'text-gray-600' : 'text-gray-400'} text-sm`}>•</span>
+              {' '}&{' '}
               <a
                 href="https://x.com/@heydebashis"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} text-sm transition-colors duration-200 hover:underline`}
+                className={`${mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'} font-bold transition-colors duration-200`}
               >
-                Deb on X
+                Deb
               </a>
-            </div>
+            </p>
+
+
           </motion.div>
         </div>
       </footer>
