@@ -56,10 +56,10 @@ export const Component = ({ mode }: Props) => {
   const isEmailValid = email.trim() !== '' && email.includes('@') && !isSubmitting;
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative min-h-screen w-full overflow-hidden flex flex-col">
 
       {/* Header with Logo and Theme Toggle - Industry standard positioning */}
-      <header className="relative z-20 w-full">
+      <header className="relative z-20 w-full flex-shrink-0">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           <div className="flex items-center justify-between py-2 sm:py-3">
             <motion.div
@@ -87,8 +87,8 @@ export const Component = ({ mode }: Props) => {
         </div>
       </header>
 
-      {/* Main Content - Centered with top offset */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center items-center h-full px-4 sm:px-6 lg:px-8 -mt-32">
+      {/* Main Content - Centered with responsive spacing */}
+      <main className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="w-full max-w-md mx-auto">
 
       {!showForm ? (
@@ -335,7 +335,7 @@ export const Component = ({ mode }: Props) => {
       </main>
 
       {/* Footer with Credits */}
-      <footer className="relative z-10 w-full py-4 px-4 sm:px-6 lg:px-8">
+      <footer className="relative z-10 w-full py-4 px-4 sm:px-6 lg:px-8 flex-shrink-0">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
