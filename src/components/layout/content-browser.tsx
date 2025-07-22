@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useFilters } from '@/hooks/use-filters'
 import { useDebounce } from '@/lib/performance'
+import { AuthNav } from '@/components/navigation/auth-nav'
+import { MobileNav } from '@/components/navigation/mobile-nav'
+import { useAuth } from '@/hooks/use-auth'
 
 import { SkipLinks } from '@/lib/accessibility'
 import { cn } from '@/lib/utils'
@@ -33,6 +36,7 @@ export function ContentBrowser({
   onItemShare,
 }: ContentBrowserProps) {
   const { filters, updateFilters, filterGroupsWithCounts } = useFilters()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [searchValue, setSearchValue] = React.useState('')
 
   const [isMobile, setIsMobile] = React.useState(false)
@@ -80,8 +84,14 @@ export function ContentBrowser({
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
-            {/* Logo - Aligned with sidebar */}
-            <div className="flex-shrink-0 lg:-ml-8">
+            {/* Mobile Navigation + Logo */}
+            <div className="flex items-center flex-shrink-0 lg:-ml-8">
+              {/* Mobile Navigation Menu */}
+              <div className="md:hidden mr-2">
+                <MobileNav />
+              </div>
+
+              {/* Logo */}
               <Link href="/" className="block">
                 <Logo width={120} height={32} priority />
               </Link>
@@ -122,6 +132,66 @@ export function ContentBrowser({
                     </svg>
                   </Link>
                 </Button>
+              </div>
+
+              {/* Authentication Section */}
+              <div className="flex items-center gap-2">
+                {authLoading ? (
+                  /* Loading state - show skeleton */
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  </div>
+                ) : isAuthenticated ? (
+                  /* Authenticated user - show user dropdown menu */
+                  <AuthNav />
+                ) : (
+                  /* Guest user - show login/signup buttons */
+                  <>
+                    {/* Desktop Auth Buttons - Full size (md and up) */}
+                    <div className="hidden md:flex items-center gap-2">
+                      <Button asChild variant="ghost" size="sm" className="hover:bg-accent">
+                        <Link href="/login">
+                          Sign In
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" className="bg-primary hover:bg-primary/90">
+                        <Link href="/signup">
+                          Sign Up
+                        </Link>
+                      </Button>
+                    </div>
+
+                    {/* Tablet Auth Buttons - Medium size (sm to md) */}
+                    <div className="hidden sm:flex md:hidden items-center gap-1">
+                      <Button asChild variant="ghost" size="sm" className="px-3 text-sm">
+                        <Link href="/login">
+                          Sign In
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" className="px-3 text-sm">
+                        <Link href="/signup">
+                          Sign Up
+                        </Link>
+                      </Button>
+                    </div>
+
+                    {/* Mobile Auth Buttons - Compact (below sm) */}
+                    {/* Note: On very small screens, users can use the mobile menu */}
+                    <div className="flex sm:hidden items-center gap-1">
+                      <Button asChild variant="ghost" size="sm" className="px-2 text-xs h-8 min-w-[3rem]">
+                        <Link href="/login">
+                          Sign In
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" className="px-2 text-xs h-8 min-w-[3rem]">
+                        <Link href="/signup">
+                          Sign Up
+                        </Link>
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Theme Toggle */}
